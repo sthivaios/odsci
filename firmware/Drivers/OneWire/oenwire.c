@@ -123,3 +123,33 @@ uint8_t onewire_read_bit(void) {
   delay_us(55); // wait another 55us to complete the timeslot
   return bit; // return the bit value
 }
+
+// Writes a whole byte to the OneWire bus (8 bits)
+void onewire_write_byte(const uint8_t byte) {
+  // we iterate from 0 through 7 so we start from the least significant bit (far-right)
+  for (int i = 0; i < 8; i++) {
+    // we right-shift the byte by the value of i which is the position of the bit in the byte.
+    // this, pushes that bit to the last far-right position of the byte. we can then do a bitwise AND
+    // with the mask 0x01, so it will either return 1 or 0 depending on whether that bit is set or not in the byte.
+    // and we pass that value as the bit argument to the onewire_write_bit() function
+    onewire_write_bit((byte >> i) & 0x01);
+    // then repeat for all the other bits of the byte
+  }
+}
+
+// Reads a whole byte from the OneWire bus (8 bits) and returns it
+uint8_t onewire_read_byte(void) {
+  // we init a uint8_t variable called byte, this will store the byte
+  uint8_t byte = 0;
+
+  // we iterate from 0 through 7
+  for (int i = 0; i < 8; i++) {
+    // the |= operator is the same as saying: byte = byte | [whatever]
+    // so we are setting the byte variable to be the value of the byte variable itself, OR'ed with
+    // the current state of the bit, left shifted by i.
+    // so if the byte variable was set to 0b00000000 at first, each zero starting from the right, is
+    // OR'd with the current bit value, so if its 1 it will set it to 1, eventually completing the byte.
+    byte |= (onewire_read_bit() << i);
+  }
+  return byte; // we return the full byte
+}
