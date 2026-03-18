@@ -8,6 +8,9 @@
  * direct register manipulation so its still weird.
  */
 
+// For reference, we dont set the onewire bus to HIGH in this code ever. instead we set the pin mode to "input" which
+// releases the bus high again since its pulled high by a resistor to VDD. we only ever pull it low.
+
 // Helper Functions //
 /* ----------------------------- */
 
@@ -49,6 +52,7 @@ void delay_us(uint32_t microseconds) {
 // OneWire Functions //
 /* ----------------------------- */
 
+// Resets the device on the onewire bus
 uint8_t onewire_reset(void) {
   // set the pin to output mode
   ow_set_pin_as_output();
@@ -77,4 +81,45 @@ uint8_t onewire_reset(void) {
 
   // we return the sensor presence value
   return presence;
+}
+
+// Writes a bit to the onewire bus
+void onewire_write_bit(const uint8_t bit) {
+  // if bit = 1
+  if (bit) {
+    // set the pin as an output
+    ow_set_pin_as_output();
+    // left-shift the onewire pin bitmask by 16, which resets the pin thus pulling it low
+    ONEWIRE_PORT->BSRR = ONEWIRE_PIN << 16;
+    // keep it low for 6us - all of these delays are just what the OneWire protocol standard says to use
+    delay_us(6);
+    // set the pin as an input again
+    ow_set_pin_as_input();
+    // complete the 70us time slot with the rest 64us
+    delay_us(64);
+  } else {
+    // if the bit is 0 instead, the timeslot is a bit different
+    ow_set_pin_as_output();
+    ONEWIRE_PORT->BSRR = ONEWIRE_PIN << 16; // we pull the pin low again
+    delay_us(60); // this time we keep it low for 60us
+    ow_set_pin_as_input(); // set as an input which releases the bus high again
+    delay_us(10); // complete the timeslot with 10us more
+  }
+}
+
+// Reads a bit from the onewire bus (and returns it)
+uint8_t onewire_read_bit(void) {
+  // again, this is all according to the onewire standard //
+
+  ow_set_pin_as_output(); // set pin as an output
+  ONEWIRE_PORT->BSRR = ONEWIRE_PIN << 16; // pull the bus low again
+  delay_us(6); // release it for 6us
+  ow_set_pin_as_input(); // set the pin as in input, releasing the bus high
+  delay_us(9); // wait for another 9us
+  // then we do a bitwise AND of the IDR register with the pin's bitmask. this will return a non-zero value if
+  // the pin is HIGH. in that case, the ternary operator returns a 1. otherwise, if the pin is low, we return 0.
+  // we set that value as the value of the bit variable
+  const uint8_t bit = (ONEWIRE_PORT->IDR & ONEWIRE_PIN) ? 1 : 0;
+  delay_us(55); // wait another 55us to complete the timeslot
+  return bit; // return the bit value
 }
