@@ -49,7 +49,7 @@ void delay_us(uint32_t microseconds) {
   while ((__HAL_TIM_GET_COUNTER(&htim2) - start) < microseconds);
 }
 
-// OneWire Functions //
+// OneWire Basic Functions //
 /* ----------------------------- */
 
 // Resets the device on the onewire bus
@@ -146,10 +146,61 @@ uint8_t onewire_read_byte(void) {
   for (int i = 0; i < 8; i++) {
     // the |= operator is the same as saying: byte = byte | [whatever]
     // so we are setting the byte variable to be the value of the byte variable itself, OR'ed with
-    // the current state of the bit, left shifted by i.
+    // the current state of the bit, left sshifted by i.
     // so if the byte variable was set to 0b00000000 at first, each zero starting from the right, is
     // OR'd with the current bit value, so if its 1 it will set it to 1, eventually completing the byte.
     byte |= (onewire_read_bit() << i);
   }
   return byte; // we return the full byte
+}
+
+// OneWire Higher-level Functions //
+/* ----------------------------- */
+
+// Begins the conversion
+void ds18b20_start_conversion(void) {
+  // resets the bus, and returns if it gets a 0 from the reset function which would mean no sensor is present
+  if (!onewire_reset()) {
+    return;
+  }
+
+  // 0xCC skips the ROM address. since we only have one sensor on the bus, we can use this, in order
+  // to basically say that we dont care which sensor we are talking to, so any sensor can and
+  // should respond (the only one we have)
+  onewire_write_byte(0xCC);      // Skip ROM
+
+  // 0x44 tells the sensor to start the conversion.
+  // conversion in this context refers to the internal ADC of the DS18B20, converting the analog to a digital value
+  onewire_write_byte(0x44);
+
+  // Wait 750ms for the 12-bit resolution conversion to complete
+  delay_us(750000);
+}
+
+// Reads the temperature value after the conversion is done and returns it as a float
+OneWire_Status ds18b20_read_temperature(float *out) {
+  if (!onewire_reset()) return OneWire_Error; // return OneWire_Error if no sensor is present
+  onewire_write_byte(0xCC); // skip the rom code again, we only have one sensor
+
+  // the command 0xBE reads the scratchpad which is just a tiny memory that holds the last conversion value
+  onewire_write_byte(0xBE);
+
+  // the temperature is a 16-bit value, stored as two separate bytes
+  // we store the least significant byte first, then the most significant byte
+  const uint8_t temp_lsb = onewire_read_byte();
+  const uint8_t temp_msb = onewire_read_byte();
+
+  // the scratchpad has 9 bytes in total, we store the first two above, and then
+  // we discard the other 7 by reading and not storing them anywhere
+  for (int i = 0; i < 7; i++) onewire_read_byte();
+
+  // to combine them, we shift the msb to the left by 8 bits then we OR that value with the
+  // lsb. consider that all the bits in the msb were ones, then we have 0b1111111. if that is shifted
+  // to the left by 8, then that leaves us with 0b1111111100000000. if we OR tha value
+  // with the lsb, then the lsb replaces those zeros at the end, which gives us the two bytes combined.
+  const int16_t raw = (temp_msb << 8) | temp_lsb;
+
+  // divide by 16 to get the fractions back
+  *out = raw / 16.0;
+  return OneWire_OK;
 }
