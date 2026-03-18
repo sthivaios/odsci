@@ -189,6 +189,7 @@ void ds18b20_start_conversion(void) {
 
   // Wait 750ms for the 12-bit resolution conversion to complete
   delay_us(750000);
+  return;
 }
 
 // Reads the temperature value after the conversion is done and returns it as a float
