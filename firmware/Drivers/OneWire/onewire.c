@@ -43,7 +43,7 @@ static inline void ow_set_pin_as_output(void) {
 }
 
 // Sets the onewire pin to input mode by manipulating the MODER register
-void ow_set_pin_as_input(void) {
+static inline void ow_set_pin_as_input(void) {
   // does the same exact thing that the first line in the ow_set_pin_as_output() does
   // except this time we just keep it like this, unlike the function above where
   // we then set the two bits to 01. here we leave them as 00 which is the configuration
