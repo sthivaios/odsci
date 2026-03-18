@@ -118,6 +118,7 @@ int main(void)
   {
     ds18b20_start_conversion();
     ds18b20_read_temperature(&temperature);
+    HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
