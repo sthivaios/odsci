@@ -75,7 +75,7 @@ void Error_Handler(void);
 #define DS18B20_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-
+extern TIM_HandleTypeDef htim2;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
