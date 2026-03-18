@@ -56,7 +56,7 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+float temperature;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -106,17 +106,18 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  ds18b20_start_conversion();
-  float temperature;
-  ds18b20_read_temperature(&temperature);
-  HAL_Delay(1000);
+
+  // start the timer
+  HAL_TIM_Base_Start(&htim2);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+    ds18b20_start_conversion();
+    ds18b20_read_temperature(&temperature);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
