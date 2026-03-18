@@ -1,4 +1,18 @@
-#include "oenwire.h"
+// Copyright (c) 2026 Stratos Thivaios
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "onewire.h"
 
 /*
  * This code is really messy because it manipulates registers directly.
@@ -15,7 +29,7 @@
 /* ----------------------------- */
 
 // Sets the onewire pin to output mode by manipulating the MODER register
-void ow_set_pin_as_output(void) {
+static inline void ow_set_pin_as_output(void) {
   // below, we left-shift 0b11 by the pin number multiplied by 2, to create a mask that has
   // all 0's except those two pins that are 1's. then we do a bitwise NOT to the mask, so that
   // we invert it. now they are all 1's except those two pins that are now 0's.
@@ -38,7 +52,7 @@ void ow_set_pin_as_input(void) {
 }
 
 // Delays by a specific number of microseconds
-void delay_us(uint32_t microseconds) {
+static inline void delay_us(uint32_t microseconds) {
   // HAL_Delay is too slow for this so we use this function instead
 
   // we set the "start" variable to the current timer value
@@ -53,7 +67,7 @@ void delay_us(uint32_t microseconds) {
 /* ----------------------------- */
 
 // Resets the device on the onewire bus
-uint8_t onewire_reset(void) {
+static uint8_t onewire_reset(void) {
   // set the pin to output mode
   ow_set_pin_as_output();
 
@@ -84,7 +98,7 @@ uint8_t onewire_reset(void) {
 }
 
 // Writes a bit to the onewire bus
-void onewire_write_bit(const uint8_t bit) {
+static void onewire_write_bit(const uint8_t bit) {
   // if bit = 1
   if (bit) {
     // set the pin as an output
@@ -108,7 +122,7 @@ void onewire_write_bit(const uint8_t bit) {
 }
 
 // Reads a bit from the onewire bus (and returns it)
-uint8_t onewire_read_bit(void) {
+static uint8_t onewire_read_bit(void) {
   // again, this is all according to the onewire standard //
 
   ow_set_pin_as_output(); // set pin as an output
@@ -138,7 +152,7 @@ void onewire_write_byte(const uint8_t byte) {
 }
 
 // Reads a whole byte from the OneWire bus (8 bits) and returns it
-uint8_t onewire_read_byte(void) {
+static uint8_t onewire_read_byte(void) {
   // we init a uint8_t variable called byte, this will store the byte
   uint8_t byte = 0;
 
@@ -166,8 +180,8 @@ void ds18b20_start_conversion(void) {
 
   // 0xCC skips the ROM address. since we only have one sensor on the bus, we can use this, in order
   // to basically say that we dont care which sensor we are talking to, so any sensor can and
-  // should respond (the only one we have)
-  onewire_write_byte(0xCC);      // Skip ROM
+  // should respond (our only sensor on the bus).
+  onewire_write_byte(0xCC);
 
   // 0x44 tells the sensor to start the conversion.
   // conversion in this context refers to the internal ADC of the DS18B20, converting the analog to a digital value
