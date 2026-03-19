@@ -228,7 +228,12 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
     break;
 
     case CDC_SET_CONTROL_LINE_STATE:
-
+      uint8_t dtr = (pbuf[0] & 0x01);
+      if (dtr) {
+        char tx_buf[128];
+        snprintf(tx_buf, sizeof(tx_buf), "ODSCI v%s\r\n", "test");
+        CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
+      }
     break;
 
     case CDC_SEND_BREAK:

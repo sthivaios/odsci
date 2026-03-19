@@ -27,7 +27,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "../../App/Inc/version.h"
 #include "usb_device.h"
+#include "usbd_cdc_if.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -115,7 +117,6 @@ int main(void)
 
   // start the timer
   HAL_TIM_Base_Start(&htim2);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */

@@ -12,7 +12,7 @@ static char Buffer[BUFFER_SIZE];
 uint32_t bufferIndex = 0;
 
 void handle_cmd() {
-  char tx_buf[128];
+  char tx_buf[256];
 
   if (strcasecmp(Buffer, "GET_TEMPERATURE") == 0) {
     const TakeAction_Params_T params = {
@@ -24,6 +24,12 @@ void handle_cmd() {
       .sendInfo = true
     };
     change_takeAction_params(params);
+  } else if (strcasecmp(Buffer, "HELLO") == 0) {
+    snprintf(tx_buf, sizeof(tx_buf), "================================\r\nHey there!\r\nThis is ODSCI v%s\r\nStratos Thivaios (c) 2026\r\n================================\r\n", FIRMWARE_VERSION_STR);
+    CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
+  } else if (strcasecmp(Buffer, "PING") == 0) {
+    snprintf(tx_buf, sizeof(tx_buf), "Pong!\r\n");
+    CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
   } else if (strcmp(Buffer, "") == 0) {
     snprintf(tx_buf, sizeof(tx_buf), "ERROR:NO_COMMAND_ENTERED\r\n");
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
