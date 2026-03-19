@@ -1,7 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
-CAD.formats=
-CAD.pinconfig=
-CAD.provider=
+CAD.formats=[]
+CAD.pinconfig=Dual
+CAD.provider=Component Search Engine
 File.Version=6
 GPIO.groupedBy=Group By Peripherals
 KeepUserPlacement=false
