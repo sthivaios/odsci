@@ -126,6 +126,7 @@ int main(void)
   {
     take_action(TakeAction_Params);
     TakeAction_Params = TakeAction_ClearStruct;
+    HAL_Delay(1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
