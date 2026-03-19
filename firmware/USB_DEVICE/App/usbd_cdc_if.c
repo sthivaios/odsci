@@ -21,8 +21,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_cdc_if.h"
 
-#include "../../App/Inc/command_handler.h"
-
 /* USER CODE BEGIN INCLUDE */
 
 /* USER CODE END INCLUDE */
