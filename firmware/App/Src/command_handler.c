@@ -1,5 +1,6 @@
 #include "../Inc/command_handler.h"
 
+#include "onewire.h"
 #include "usbd_cdc.h"
 #include "usbd_cdc_if.h"
 
@@ -10,9 +11,16 @@ static char Buffer[BUFFER_SIZE];
 uint32_t bufferIndex = 0;
 
 void handle_cmd() {
-  char tx_buf[BUFFER_SIZE+2];
-  snprintf(tx_buf, sizeof(tx_buf), "got: %s\r\n", Buffer);
-  CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
+  if (strcmp(Buffer, "GET_TEMPERATURE") == 0) {
+    const TakeAction_Params_T params = {
+      .sendTemperature = true
+    };
+    change_takeAction_params(params);
+  } else {
+    char tx_buf[128];
+    snprintf(tx_buf, sizeof(tx_buf), "Unknown Command: %s\r\n", Buffer);
+    CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
+  }
 }
 
 void odsci_handle_rx(const uint8_t *IncBuf, uint32_t Len) {
@@ -31,3 +39,14 @@ void odsci_handle_rx(const uint8_t *IncBuf, uint32_t Len) {
     bufferIndex++;
   }
 };
+
+void take_action(const TakeAction_Params_T params) {
+  if (params.sendTemperature == true) {
+    static float temperature;
+    ds18b20_start_conversion();
+    ds18b20_read_temperature(&temperature);
+    char tx_buf[64];
+    snprintf(tx_buf, sizeof(tx_buf), "%f\r\n", temperature);
+    CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
+  }
+}

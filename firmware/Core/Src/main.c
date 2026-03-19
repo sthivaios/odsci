@@ -57,6 +57,9 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 float temperature;
+
+TakeAction_Params_T TakeAction_ClearStruct;
+TakeAction_Params_T TakeAction_Params;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,6 +73,10 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void change_takeAction_params(const TakeAction_Params_T params) {
+  TakeAction_Params = params;
+}
 
 /* USER CODE END 0 */
 
@@ -114,11 +121,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  // ReSharper disable once CppDFAEndlessLoop
   while (1)
   {
-    ds18b20_start_conversion();
-    ds18b20_read_temperature(&temperature);
-    HAL_Delay(1000);
+    take_action(TakeAction_Params);
+    TakeAction_Params = TakeAction_ClearStruct;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
