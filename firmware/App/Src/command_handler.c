@@ -13,7 +13,7 @@ uint32_t bufferIndex = 0;
 void handle_cmd() {
   char tx_buf[128];
 
-  if (strcmp(Buffer, "GET_TEMPERATURE") == 0) {
+  if (strcasecmp(Buffer, "GET_TEMPERATURE") == 0) {
     const TakeAction_Params_T params = {
       .sendTemperature = true
     };
@@ -48,8 +48,14 @@ void take_action(const TakeAction_Params_T params) {
   if (params.sendTemperature == true) {
     static float temperature;
     ds18b20_start_conversion();
-    ds18b20_read_temperature(&temperature);
-    char tx_buf[64];
+    const OneWire_Status status = ds18b20_read_temperature(&temperature);
+
+    char tx_buf[128];
+    if (status == OneWire_Error) {
+      snprintf(tx_buf, sizeof(tx_buf), "ERROR:SENSOR_ERROR\r\n");
+      CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
+      return;
+    }
     snprintf(tx_buf, sizeof(tx_buf), "%f\r\n", temperature);
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
   }
