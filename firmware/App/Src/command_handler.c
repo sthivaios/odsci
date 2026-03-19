@@ -11,14 +11,18 @@ static char Buffer[BUFFER_SIZE];
 uint32_t bufferIndex = 0;
 
 void handle_cmd() {
+  char tx_buf[128];
+
   if (strcmp(Buffer, "GET_TEMPERATURE") == 0) {
     const TakeAction_Params_T params = {
       .sendTemperature = true
     };
     change_takeAction_params(params);
+  } else if (strcmp(Buffer, "") == 0) {
+    snprintf(tx_buf, sizeof(tx_buf), "ERROR:NO_COMMAND_ENTERED\r\n");
+    CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
   } else {
-    char tx_buf[128];
-    snprintf(tx_buf, sizeof(tx_buf), "Unknown Command: %s\r\n", Buffer);
+    snprintf(tx_buf, sizeof(tx_buf), "ERROR:UNKNOWN_COMMAND\r\n");
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
   }
 }
