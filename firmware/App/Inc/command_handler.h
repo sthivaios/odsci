@@ -13,6 +13,7 @@
 // typedefs
 typedef struct {
   bool sendTemperature;
+  bool sendInfo;
 } TakeAction_Params_T;
 
 // function declarations

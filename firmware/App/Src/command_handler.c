@@ -1,5 +1,6 @@
 #include "../Inc/command_handler.h"
 
+#include "../Inc/version.h"
 #include "onewire.h"
 #include "usbd_cdc.h"
 #include "usbd_cdc_if.h"
@@ -16,6 +17,11 @@ void handle_cmd() {
   if (strcasecmp(Buffer, "GET_TEMPERATURE") == 0) {
     const TakeAction_Params_T params = {
       .sendTemperature = true
+    };
+    change_takeAction_params(params);
+  } else if (strcasecmp(Buffer, "GET_INFO") == 0) {
+    const TakeAction_Params_T params = {
+      .sendInfo = true
     };
     change_takeAction_params(params);
   } else if (strcmp(Buffer, "") == 0) {
@@ -57,6 +63,10 @@ void take_action(const TakeAction_Params_T params) {
       return;
     }
     snprintf(tx_buf, sizeof(tx_buf), "%f\r\n", temperature);
+    CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
+  } else if (params.sendInfo == true) {
+    char tx_buf[128];
+    snprintf(tx_buf, sizeof(tx_buf), "ODSCI v%s\r\n", FIRMWARE_VERSION_STR);
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
   }
 }
