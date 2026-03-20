@@ -29,25 +29,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/schollz/progressbar"
 	"github.com/spf13/cobra"
+	"github.com/sthivaios/odsci/utils"
 	"go.bug.st/serial"
 )
-
-type Sample struct {
-	timestamp int64
-	value float64
-}
-
-func timeString(seconds int64) string {
-	if (seconds > 60) {
-		if (seconds % 60 == 0) {
-			return fmt.Sprintf("%dm", seconds/60)
-		} else {
-			return fmt.Sprintf("%dm %ds", seconds/60, seconds % 60)
-		}
-	} else {
-		return fmt.Sprintf("%ds", seconds)
-	}
-}
 
 // captureCmd represents the capture command
 var captureCmd = &cobra.Command{
@@ -58,7 +42,7 @@ of samples from the probe, at a specific interval, and export
 the captured data.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		// port, _ := cmd.Flags().GetString("port")
+		serialPort, _ := cmd.Flags().GetString("port")
         samples, _ := cmd.Flags().GetInt("samples")
         interval, _ := cmd.Flags().GetInt("interval")
         // output, _ := cmd.Flags().GetInt("output")
@@ -66,7 +50,7 @@ the captured data.`,
 		mode := &serial.Mode{
 			BaudRate: 115200,
 		}
-		port, err := serial.Open("/dev/tty.usbmodem3871397E3432", mode)
+		port, err := serial.Open(serialPort, mode)
 		if err != nil {
 			var errorString string = color.HiRedString("\r\nThere was an error while trying to connect to the ODSCI probe.\r\nThe serial port you entered may be incorrect.\r\nTo scan for serial ports on your computer, run ") + color.HiMagentaString("'odcsi scan'") + color.HiRedString(".\r\n\r\nError details:\r\n\r\n")
 			print(errorString);
@@ -76,24 +60,24 @@ the captured data.`,
 		}
 		scanner := bufio.NewScanner(port)
 
-		capturedSamples := make([]Sample, 0, samples)
+		capturedSamples := make([]utils.Sample, 0, samples)
 
 		// time estimate
 		var totalSeconds float64 = float64(samples-1) * float64(interval) + (float64(samples) * float64(0.85))
-		print(fmt.Sprintf("Capturing %d samples, at a %s interval\r\nEstimated time until completetion: %s\r\nCapture should be completed at around %s\r\n\r\n", samples, timeString(int64(interval)), timeString(int64(totalSeconds)), time.Unix((time.Now().Unix() + int64(totalSeconds)), 0).Format("15:04:05")))
+		print(fmt.Sprintf("Capturing %d samples, at a %s interval\r\nEstimated time until completetion: %s\r\nCapture should be completed at around %s\r\n\r\n", samples, utils.TimeString(int64(interval)), utils.TimeString(int64(totalSeconds)), time.Unix((time.Now().Unix() + int64(totalSeconds)), 0).Format("15:04:05")))
 
 		bar := progressbar.New(samples)
 		for i := range samples {
-			var sample Sample
-			sample.timestamp = time.Now().Unix()
+			var sample utils.Sample
+			sample.Timestamp = time.Now().Unix()
 			port.Write([]byte("GET_TEMPERATURE\r"))
 			scanner.Scan()
 			line := scanner.Text()
 			value, err := strconv.ParseFloat(strings.TrimSpace(line), 64)
 			if err != nil {
-				sample.value = -999
+				sample.Value = -999
 			}
-			sample.value = value
+			sample.Value = value
 			capturedSamples = append(capturedSamples, sample)
 			bar.Add(1)
 			
@@ -105,9 +89,9 @@ the captured data.`,
 
 		port.Write([]byte("SET_CLED_OFF\r"))
 
-		for i, value := range capturedSamples {
-			print(fmt.Sprintf("Slice index: %d --- Value: %f --- Timestamp: %d\r\n", i+1, value.value, value.timestamp))
-		}
+		// for i, value := range capturedSamples {
+		// 	print(fmt.Sprintf("Slice index: %d --- Value: %f --- Timestamp: %d\r\n", i+1, value.Value, value.Timestamp))
+		// }
 	},
 }
 
