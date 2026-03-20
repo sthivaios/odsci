@@ -19,11 +19,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"bufio"
+	"fmt"
 	"log"
+	"strconv"
+	"strings"
+	"time"
 
+	"github.com/schollz/progressbar"
 	"github.com/spf13/cobra"
 	"go.bug.st/serial"
 )
+
+type Sample struct {
+	timestamp int64
+	value float64
+}
+
+func timeString(seconds int64) string {
+	if (seconds > 60) {
+		if (seconds % 60 == 0) {
+			return fmt.Sprintf("%dm", seconds/60)
+		} else {
+			return fmt.Sprintf("%dm %ds", seconds/60, seconds % 60)
+		}
+	} else {
+		return fmt.Sprintf("%ds", seconds)
+	}
+}
 
 // captureCmd represents the capture command
 var captureCmd = &cobra.Command{
@@ -35,16 +58,52 @@ the captured data.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		// port, _ := cmd.Flags().GetString("port")
-        // samples, _ := cmd.Flags().GetInt("samples")
-        // interval, _ := cmd.Flags().GetInt("interval")
+        samples, _ := cmd.Flags().GetInt("samples")
+        interval, _ := cmd.Flags().GetInt("interval")
         // output, _ := cmd.Flags().GetInt("output")
 
 		mode := &serial.Mode{
 			BaudRate: 115200,
 		}
-		_, err := serial.Open("/dev/tty.usbmodem3871397E34321", mode)
+		port, err := serial.Open("/dev/tty.usbmodem3871397E34321", mode)
 		if err != nil {
 			log.Fatal(err)
+		} else {
+			port.Write([]byte("SET_CLED_ON\r"))
+		}
+		scanner := bufio.NewScanner(port)
+
+		capturedSamples := make([]Sample, 0, samples)
+
+		// time estimate
+		var totalSeconds float64 = float64(samples-1) * float64(interval) + (float64(samples) * float64(0.85))
+		print(fmt.Sprintf("Capturing %d samples, at a %s interval\r\nEstimated time until completetion: %s\r\nCapture should be completed at around %s\r\n\r\n", samples, timeString(int64(interval)), timeString(int64(totalSeconds)), time.Unix((time.Now().Unix() + int64(totalSeconds)), 0).Format("15:04:05")))
+
+		bar := progressbar.New(samples)
+		for i := range samples {
+			var sample Sample
+			sample.timestamp = time.Now().Unix()
+			port.Write([]byte("GET_TEMPERATURE\r"))
+			scanner.Scan()
+			line := scanner.Text()
+			value, err := strconv.ParseFloat(strings.TrimSpace(line), 64)
+			if err != nil {
+				sample.value = -999
+			}
+			sample.value = value
+			capturedSamples = append(capturedSamples, sample)
+			bar.Add(1)
+			
+			// print(fmt.Sprintf("Capturing samples: %.0f%% [%d/%d]\r\n", (float64(i+1)/float64(samples))*100, i+1, samples))
+			if (i+1 < samples) {
+				time.Sleep(time.Duration(interval) * time.Second)
+			}
+		}
+
+		port.Write([]byte("SET_CLED_OFF\r"))
+
+		for i, value := range capturedSamples {
+			print(fmt.Sprintf("Slice index: %d --- Value: %f --- Timestamp: %d\r\n", i+1, value.value, value.timestamp))
 		}
 	},
 }
