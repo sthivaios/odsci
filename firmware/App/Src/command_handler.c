@@ -21,6 +21,8 @@
 
 #include <stdio.h>
 
+#include "../Inc/led_control.h"
+
 
 static char Buffer[BUFFER_SIZE];
 uint32_t bufferIndex = 0;
@@ -41,6 +43,10 @@ void handle_cmd() {
   } else if (strcasecmp(Buffer, "HELLO") == 0) {
     snprintf(tx_buf, sizeof(tx_buf), "================================\r\nHey there!\r\nThis is ODSCI v%s\r\nStratos Thivaios (c) 2026\r\n================================\r\n", FIRMWARE_VERSION_STR);
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
+  } else if (strcasecmp(Buffer, "SET_CLED_ON") == 0) {
+    led_control(CAPTURE_LED, true);
+  } else if (strcasecmp(Buffer, "SET_CLED_OFF") == 0) {
+    led_control(CAPTURE_LED, false);
   } else if (strcasecmp(Buffer, "PING") == 0) {
     snprintf(tx_buf, sizeof(tx_buf), "Pong!\r\n");
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
@@ -73,8 +79,10 @@ void odsci_handle_rx(const uint8_t *IncBuf, uint32_t Len) {
 void take_action(const TakeAction_Params_T params) {
   if (params.sendTemperature == true) {
     static float temperature;
+    led_control(ACTIVITY_LED, true);
     ds18b20_start_conversion();
     const OneWire_Status status = ds18b20_read_temperature(&temperature);
+    led_control(ACTIVITY_LED, false);
 
     char tx_buf[128];
     if (status == OneWire_Error) {
