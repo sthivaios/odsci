@@ -47,6 +47,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Drivers/OneWire/onewire.c
     App/Src/command_handler.c
+    App/Src/led_control.c
 )
 
 # Add include paths
