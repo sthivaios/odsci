@@ -57,7 +57,6 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-float temperature;
 
 TakeAction_Params_T TakeAction_ClearStruct;
 TakeAction_Params_T TakeAction_Params;
