@@ -22,8 +22,11 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/fatih/color"
@@ -42,6 +45,9 @@ of samples from the probe, at a specific interval, and export
 the captured data.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
+		var sigChan = make(chan os.Signal, 1)
+		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
 		serialPort, _ := cmd.Flags().GetString("port")
         samples, _ := cmd.Flags().GetInt("samples")
         interval, _ := cmd.Flags().GetInt("interval")
@@ -58,6 +64,14 @@ the captured data.`,
 		} else {
 			port.Write([]byte("SET_CLED_ON\r"))
 		}
+
+		go func() {
+			<-sigChan
+			port.Write([]byte("SET_CLED_OFF\r"))
+			color.HiRed("\r\n\r\nCancelled.")
+			os.Exit(0)
+		}()
+
 		scanner := bufio.NewScanner(port)
 
 		capturedSamples := make([]utils.Sample, 0, samples)
@@ -88,10 +102,6 @@ the captured data.`,
 		}
 
 		port.Write([]byte("SET_CLED_OFF\r"))
-
-		// for i, value := range capturedSamples {
-		// 	print(fmt.Sprintf("Slice index: %d --- Value: %f --- Timestamp: %d\r\n", i+1, value.Value, value.Timestamp))
-		// }
 	},
 }
 
