@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"bufio"
+	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
@@ -51,7 +52,7 @@ the captured data.`,
 		serialPort, _ := cmd.Flags().GetString("port")
         samples, _ := cmd.Flags().GetInt("samples")
         interval, _ := cmd.Flags().GetInt("interval")
-        // output, _ := cmd.Flags().GetInt("output")
+        output, _ := cmd.Flags().GetString("output")
 
 		mode := &serial.Mode{
 			BaudRate: 115200,
@@ -102,9 +103,29 @@ the captured data.`,
 			}
 		}
 
+		f, err := os.Create(output)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		writer := csv.NewWriter(f)
+		defer writer.Flush()
+
+		// header row
+		writer.Write([]string{"timestamp", "temperature"})
+
+		for _, sample := range capturedSamples {
+			writer.Write([]string{
+				strconv.FormatInt(sample.Timestamp, 10),
+				strconv.FormatFloat(sample.Value, 'f', 2, 64),
+			})
+		}
+
 		port.Write([]byte("SET_CLED_OFF\r"))
 	},
 }
+
 
 func init() {
 	rootCmd.AddCommand(captureCmd)
