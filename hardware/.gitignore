@@ -27,3 +27,6 @@ fp-info-cache
 
 # Local settings file
 odsci.kicad_prl
+
+# Misc
+\#*\#
