@@ -58,8 +58,8 @@ the captured data.`,
 		}
 		port, err := serial.Open(serialPort, mode)
 		if err != nil {
-			var errorString string = color.HiRedString("\r\nThere was an error while trying to connect to the ODSCI probe.\r\nThe serial port you entered may be incorrect.\r\nTo scan for serial ports on your computer, run ") + color.HiMagentaString("'odcsi scan'") + color.HiRedString(".\r\n\r\nError details:\r\n\r\n")
-			print(errorString);
+			var errorString string = color.HiRedString("\r\nThere was an error while trying to connect to the ODSCI probe.\r\nThe serial port you entered may be incorrect.\r\nTo scan for serial ports on your computer, run ") + color.HiMagentaString("'odsci scan'") + color.HiRedString(".\r\n\r\nError details:\r\n\r\n")
+			print(errorString)
 			log.Fatal(err)
 		} else {
 			port.Write([]byte("SET_CLED_ON\r"))
@@ -90,6 +90,7 @@ the captured data.`,
 			value, err := strconv.ParseFloat(strings.TrimSpace(line), 64)
 			if err != nil {
 				sample.Value = -999
+				continue
 			}
 			sample.Value = value
 			capturedSamples = append(capturedSamples, sample)
