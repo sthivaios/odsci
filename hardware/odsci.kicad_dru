@@ -1,0 +1,5 @@
+(version 1)
+(rule thermal_vias
+    (condition "A.NetName == 'GND'")
+    (constraint hole_size (min 0.2mm))
+)
