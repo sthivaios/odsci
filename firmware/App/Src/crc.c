@@ -13,3 +13,21 @@
 // limitations under the License.
 
 #include "crc.h"
+
+uint8_t generate_crc(const uint8_t data[9]) {
+  uint8_t crc = 0;
+
+  for (int i = 0; i < 9; i++) {
+    uint8_t byte = data[i];
+    for (int bit = 0; bit < 8; bit++) {
+      if (((byte & 0x01) ^ (crc & 0x01)) == 1) {
+        crc = (crc >> 1) ^ 0x8C;
+      } else {
+        crc = crc >> 1;
+      };
+      byte = byte >> 1;
+    }
+  }
+
+  return crc;
+}

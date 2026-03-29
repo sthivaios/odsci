@@ -14,5 +14,9 @@
 
 #ifndef ODSCI_CRC_H
 #define ODSCI_CRC_H
+#include <stdint.h>
+
+// function declarations
+uint8_t generate_crc(const uint8_t data[9]);
 
 #endif //ODSCI_CRC_H
