@@ -18,8 +18,6 @@
 // include
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "stm32f446xx.h"
 #include "stm32f4xx_hal.h"
 
 // led definitions
