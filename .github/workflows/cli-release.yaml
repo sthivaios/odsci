@@ -22,7 +22,7 @@ jobs:
             $0 ~ "^## \\[" ver "\\]" {found=1; next}
             $0 ~ "^## \\[" {found=0}
             found {print}
-          ' CHANGELOG.md)
+          ' cli/CHANGELOG.md)
           if [ -z "$CHANGES" ]; then
             CHANGES="No changelog entry was found for this release."
           fi
