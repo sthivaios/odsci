@@ -57,7 +57,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          body_path: firmware/release_notes.md
           files: |
-            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}.bin
-            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}.hex
+            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.bin
+            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.hex
             firmware/build/Release/checksums.txt
