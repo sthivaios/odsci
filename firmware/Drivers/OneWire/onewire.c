@@ -14,6 +14,10 @@
 
 #include "onewire.h"
 
+#include "crc.h"
+
+#include <string.h>
+
 /*
  * This code is really messy because it manipulates registers directly.
  * You should not mess with this file unless you really understand what you are
@@ -200,14 +204,23 @@ OneWire_Status ds18b20_read_temperature(float *out) {
   // the command 0xBE reads the scratchpad which is just a tiny memory that holds the last conversion value
   onewire_write_byte(0xBE);
 
+  // read all 9 bytes
+  uint8_t sensor_data[9];
+  for (int i = 0; i < 9; i++) {
+    sensor_data[i] = onewire_read_byte();
+  }
+
   // the temperature is a 16-bit value, stored as two separate bytes
   // we store the least significant byte first, then the most significant byte
-  const uint8_t temp_lsb = onewire_read_byte();
-  const uint8_t temp_msb = onewire_read_byte();
+  const uint8_t temp_lsb = sensor_data[0];
+  const uint8_t temp_msb = sensor_data[1];
 
-  // the scratchpad has 9 bytes in total, we store the first two above, and then
-  // we discard the other 7 by reading and not storing them anywhere
-  for (int i = 0; i < 7; i++) onewire_read_byte();
+  // and then we generate our own crc of all the scratchpad data, including the crc byte, which, if correct, should return 0x00
+  const uint8_t generated_crc = generate_crc(sensor_data, 9);
+  if (generated_crc != 0x00) {
+    // if it doesnt, we return a special error
+    return OneWire_CRC_Error;
+  }
 
   // to combine them, we shift the msb to the left by 8 bits then we OR that value with the
   // lsb. consider that all the bits in the msb were ones, then we have 0b1111111. if that is shifted

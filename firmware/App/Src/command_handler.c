@@ -98,6 +98,12 @@ void take_action(const TakeAction_Params_T params) {
       CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
       return;
     }
+    if (status == OneWire_CRC_Error) {
+      ERROR_LED_ON();
+      snprintf(tx_buf, sizeof(tx_buf), "ERROR:DATA_CRC_ERROR\r\n");
+      CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
+      return;
+    }
     snprintf(tx_buf, sizeof(tx_buf), "%f\r\n", temperature);
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
     ERROR_LED_OFF();
