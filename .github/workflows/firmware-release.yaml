@@ -3,6 +3,10 @@ on:
   push:
     tags:
       - 'firmware/v*'
+
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: proxmox-lxc
