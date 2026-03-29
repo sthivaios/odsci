@@ -8,6 +8,8 @@
 
 version: 2
 
+version_template: '{{ .Tag | replace "cli/" "" }}'
+
 before:
   hooks:
     - go mod tidy
