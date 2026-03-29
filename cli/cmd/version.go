@@ -16,10 +16,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package main
+package cmd
 
-import "github.com/sthivaios/odsci/cmd"
+import (
+	"fmt"
 
-func main() {
-	cmd.Execute()
+	"github.com/spf13/cobra"
+)
+
+var version = "dev"
+
+// versionCmd represents the version command
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Prints the version string",
+	Long: `Prints the version string`,
+	Run: func(cmd *cobra.Command, args []string) {
+		quiet, _ := cmd.Flags().GetBool("quiet")
+		if (!quiet) {
+			fmt.Printf("ODSCI CLI %s\r\n\r\n%s\r\n", version, desclaimer)
+		} else {
+			fmt.Printf("%s\r\n", version)
+		}
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(versionCmd)
+	versionCmd.Flags().BoolP("quiet", "q", false, "Quiet output (print ONLY the version string)")
 }
