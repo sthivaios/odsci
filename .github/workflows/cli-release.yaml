@@ -43,7 +43,7 @@ jobs:
 
       - uses: goreleaser/goreleaser-action@v5
         with:
-          version: latest
+          version: "~> v2"
           args: release --clean --config cli/.goreleaser.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
