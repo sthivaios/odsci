@@ -8,6 +8,9 @@
 
 version: 2
 
+git:
+  tag: 'cli/v(?P<version>\d+\.\d+\.\d+)'
+
 before:
   hooks:
     - go mod tidy
