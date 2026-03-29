@@ -12,17 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure
-        run: cmake -B build -S . --preset Release
+        run: cmake -S . --preset Release
       - name: Build
         run: cmake --build build --preset Release
       - name: Generate checksums
         run: |
-          cd build
+          cd build/Release
           sha256sum odsci.bin odsci.hex > checksums.txt
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            firmware/build/odsci.bin
-            firmware/build/odsci.hex
-            firmware/build/checksums.txt
+            firmware/build/Release/odsci.bin
+            firmware/build/Release/odsci.hex
+            firmware/build/Release/checksums.txt
