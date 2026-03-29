@@ -19,7 +19,7 @@ set -e
 
 
 # prompt the developer for version
-read -p "Enter CLI version to release (e.g., v1.0.0): " VERSION
+read -p "Enter CLI version to release (e.g., v1.0.0 - INCLUDE THE "v"!!): " VERSION
 
 if [[ -z "$VERSION" ]]; then
     echo "No version entered. Aborting."
@@ -42,13 +42,13 @@ if [[ "$BRANCH" != "main" && "$BRANCH" != "master" ]]; then
 fi
 
 # confirm with developer
-read -p "Tag and push firmware/v$VERSION? (y/n) " CONFIRM
+read -p "Tag and push firmware/$VERSION? (y/n) " CONFIRM
 if [ "$CONFIRM" != "y" ]; then
     echo "Aborted"
     exit 0
 fi
 
-git tag -a cli/v$VERSION -m "Release cli/v$VERSION"
-git push origin cli/v$VERSION
+git tag -a cli/$VERSION -m "Release cli/$VERSION"
+git push origin cli/$VERSION
 
 echo "Completed! The GitHub action should take care of the rest."
