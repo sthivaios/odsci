@@ -8,7 +8,9 @@
 
 version: 2
 
-version_template: '{{ .Tag | replace "cli/" "" }}'
+git:
+  tag_filter: "cli/v*"
+  tag_template: '{{ .Tag | replace "cli/" "" }}'
 
 before:
   hooks:
@@ -37,7 +39,3 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
-
-release:
-  # use the file generated in your workflow
-  notes: release_notes.md
