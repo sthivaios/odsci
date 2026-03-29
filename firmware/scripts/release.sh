@@ -35,7 +35,7 @@ fi
 
 # ensure we are on the main branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$BRANCH" != "main" && "$BRANCH" != "master" ]; then
+if [[ "$BRANCH" != "main" && "$BRANCH" != "master" ]]; then
     echo "You must be on main or master to release"
     exit 1
 fi
