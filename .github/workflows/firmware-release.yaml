@@ -8,7 +8,10 @@ on:
 jobs:
   build:
     runs-on: proxmox-lxc
-    
+  defaults:
+    run:
+      working-directory: firmware  
+
     steps:
       - uses: actions/checkout@v4
 
