@@ -14,10 +14,10 @@
 
 #include "crc.h"
 
-uint8_t generate_crc(const uint8_t data[9]) {
+uint8_t generate_crc(const uint8_t data[9], const uint8_t length) {
   uint8_t crc = 0;
 
-  for (int i = 0; i < 9; i++) {
+  for (int i = 0; i < length; i++) {
     uint8_t byte = data[i];
     for (int bit = 0; bit < 8; bit++) {
       if (((byte & 0x01) ^ (crc & 0x01)) == 1) {

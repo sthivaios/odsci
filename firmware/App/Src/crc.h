@@ -17,6 +17,6 @@
 #include <stdint.h>
 
 // function declarations
-uint8_t generate_crc(const uint8_t data[9]);
+uint8_t generate_crc(const uint8_t data[9], const uint8_t length);
 
 #endif //ODSCI_CRC_H

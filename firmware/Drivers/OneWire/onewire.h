@@ -27,7 +27,8 @@
 // types
 typedef enum {
   OneWire_OK = 0,
-  OneWire_Error = 1
+  OneWire_Error = 1,
+  OneWire_CRC_Error = 2
 } OneWire_Status;
 
 // function declarations
