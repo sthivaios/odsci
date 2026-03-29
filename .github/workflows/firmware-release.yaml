@@ -1,0 +1,37 @@
+name: Firmware Release
+
+on:
+  push:
+    tags:
+      - 'firmware/v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARM toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi ninja-build cmake
+
+      - name: Configure
+        run: cmake -B firmware/build -S firmware --preset Release
+
+      - name: Build
+        run: cmake --build firmware/build --preset Release
+
+      - name: Generate checksums
+        run: |
+          cd firmware/build
+          sha256sum odsci.bin odsci.hex > checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            firmware/build/odsci.bin
+            firmware/build/odsci.hex
+            firmware/build/checksums.txt
