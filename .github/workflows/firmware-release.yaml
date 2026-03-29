@@ -36,7 +36,13 @@ jobs:
       - name: Extract changelog
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          awk "/^## \[${VERSION}\]/{found=1; next} /^## \[/{found=0} found{print}" CHANGELOG.md > release_notes.md
+          CHANGES=$(awk "/^## \[${VERSION}\]/{found=1; next} /^## \[/{found=0} found{print}" CHANGELOG.md)
+          if [ -z "$CHANGES" ]; then
+            CHANGES="No changelog entry was found for this release. See the commit history for changes instead."
+          fi
+          echo "## Changelog" > release_notes.md
+          echo "" >> release_notes.md
+          echo "$CHANGES" >> release_notes.md
       - name: Add DFU instructions
         run: |
           cat >> release_notes.md << 'EOF'
