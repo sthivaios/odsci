@@ -47,7 +47,7 @@ if [ "$CONFIRM" != "y" ]; then
     exit 0
 fi
 
-git tag firmware/v$VERSION
+git tag -a firmware/v$VERSION -m "Release firmware/v$VERSION"
 git push origin firmware/v$VERSION
 
 echo "Completed! The GitHub action should take care of the rest."
