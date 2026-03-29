@@ -1,36 +1,24 @@
 name: Firmware Release
-
 on:
   push:
     tags:
       - 'firmware/v*'
-
 jobs:
   build:
     runs-on: proxmox-lxc
-  defaults:
-    run:
-      working-directory: firmware  
-
+    defaults:
+      run:
+        working-directory: firmware
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install ARM toolchain
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-arm-none-eabi ninja-build cmake
-
       - name: Configure
-        run: cmake -B firmware/build -S firmware --preset Release
-
+        run: cmake -B build -S . --preset Release
       - name: Build
-        run: cmake --build firmware/build --preset Release
-
+        run: cmake --build build --preset Release
       - name: Generate checksums
         run: |
-          cd firmware/build
+          cd build
           sha256sum odsci.bin odsci.hex > checksums.txt
-
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
