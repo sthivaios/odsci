@@ -23,6 +23,11 @@ jobs:
         run: |
           cd build/Release
           sha256sum odsci.bin odsci.hex > checksums.txt
+      - name: Rename binaries
+        run: |
+          VERSION=${GITHUB_REF_NAME#firmware/}
+          mv build/Release/odsci.bin build/Release/odsci-firmware-${VERSION}-stm32f446re.bin
+          mv build/Release/odsci.hex build/Release/odsci-firmware-${VERSION}-stm32f446re.hex
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
