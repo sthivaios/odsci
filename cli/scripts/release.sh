@@ -42,7 +42,7 @@ if [[ "$BRANCH" != "main" && "$BRANCH" != "master" ]]; then
 fi
 
 # confirm with developer
-read -p "Tag and push firmware/$VERSION? (y/n) " CONFIRM
+read -p "Tag and push cli/$VERSION? (y/n) " CONFIRM
 if [ "$CONFIRM" != "y" ]; then
     echo "Aborted"
     exit 0
