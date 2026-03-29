@@ -18,8 +18,7 @@
 // include
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "stm32f446xx.h"
+#include "stm32f4xx_hal.h"
 
 // led definitions
 #define ACTIVITY_LED GPIO_PIN_6
@@ -27,5 +26,16 @@
 
 // function declarations
 void led_control(uint64_t led_pin, bool state);
+
+// macros/functions for error indicator
+#if CLED_IS_FOR_ERRORS_INSTEAD == 1
+#define ERROR_LED_ON()  errorled_on()
+#define ERROR_LED_OFF() errorled_off()
+void errorled_on(void);
+void errorled_off(void);
+#else
+#define ERROR_LED_ON()  do {} while(0)
+#define ERROR_LED_OFF() do {} while(0)
+#endif
 
 #endif //ODSCI_LED_CONTROL_H
