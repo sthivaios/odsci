@@ -16,6 +16,7 @@ jobs:
           go-version: "1.22"
 
       - name: Extract changelog
+        id: changelog
         run: |
           VERSION=${GITHUB_REF_NAME#cli/}
           CHANGES=$(awk -v ver="$VERSION" '
@@ -26,9 +27,10 @@ jobs:
           if [ -z "$CHANGES" ]; then
             CHANGES="No changelog entry was found for this release."
           fi
-          echo "## Changelog" > release_notes.md
-          echo "" >> release_notes.md
-          echo "$CHANGES" >> release_notes.md
+
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - uses: goreleaser/goreleaser-action@v5
         with:
@@ -36,4 +38,4 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GORELEASER_NOTES_FILE: release_notes.md
+          GORELEASER_NOTES: ${{ steps.changelog.outputs.changelog }}
