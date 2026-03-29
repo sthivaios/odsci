@@ -15,6 +15,11 @@ jobs:
         working-directory: firmware
     steps:
       - uses: actions/checkout@v4
+      - name: Set version
+        run: |
+          VERSION=${GITHUB_REF_NAME#firmware/}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        id: version
       - name: Configure
         run: cmake -S . --preset Release
       - name: Build
@@ -22,16 +27,16 @@ jobs:
       - name: Rename binaries
         run: |
           VERSION=${GITHUB_REF_NAME#firmware/}
-          mv build/Release/odsci.bin build/Release/odsci-firmware-${VERSION}-stm32f446re.bin
-          mv build/Release/odsci.hex build/Release/odsci-firmware-${VERSION}-stm32f446re.hex
+          mv build/Release/odsci.bin build/Release/odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.bin
+          mv build/Release/odsci.hex build/Release/odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.hex
       - name: Generate checksums
         run: |
           cd build/Release
-          sha256sum odsci-firmware-${VERSION}-stm32f446re.bin odsci-firmware-${VERSION}-stm32f446re.hex > checksums.txt
+          sha256sum odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.bin odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.hex > checksums.txt
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            firmware/build/Release/odsci-firmware-${VERSION}-stm32f446re.bin
-            firmware/build/Release/odsci-firmware-${VERSION}-stm32f446re.hex
+            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.bin
+            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.hex
             firmware/build/Release/checksums.txt
