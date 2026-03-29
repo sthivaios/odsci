@@ -1,53 +1,35 @@
-# this is an awful workflow and i also got some help from an llm
-# building binaries from go for different platforms with CGO is hell
+name: Release
 
-name: Release CLI
-
-on: workflow_dispatch
+on:
+  push:
+    tags:
+      - "v*"
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-24.04, macos-latest, windows-latest]
-        arch: [amd64, arm64]
+  release:
+    runs-on: proxmox-lxc
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
 
-    - name: Set CGO
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Extract changelog
         run: |
-          echo "CGO_ENABLED=1" >> $GITHUB_ENV
+          VERSION=${GITHUB_REF_NAME#v}
+          CHANGES=$(awk "/^## \[${VERSION}\]/{found=1; next} /^## \[/{found=0} found{print}" CHANGELOG.md)
+          if [ -z "$CHANGES" ]; then
+            CHANGES="# Changelog\nNo changelog entry was found for this release."
+          fi
+          echo "# Changelog" > release_notes.md
+          echo "" >> release_notes.md
+          echo "$CHANGES" >> release_notes.md
 
-    # Install dependencies (only on Linux)
-    - name: Install dependencies (Linux)
-      if: matrix.os == 'ubuntu-24.04'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential pkg-config
-    
-    - name: Build CLI
-      run: |
-        VERSION=${GITHUB_REF_NAME#cli/}
-        go build -v -o ./dist/odsci-cli \
-          -ldflags "-X github.com/sthivaios/odsci/cmd.Version=${VERSION}" \
-          ./cmd
-    
-    - name: Archive
-      run: |
-        OS=${{ matrix.os }}
-        ARCH=${{ matrix.arch }}
-        if [[ "$OS" == "windows-latest" ]]; then
-          zip -j dist/odsci-cli-${OS}-${ARCH}.zip dist/odsci-cli.exe
-        else
-          tar -czf dist/odsci-cli-${OS}-${ARCH}.tar.gz -C dist odsci-cli
-        fi
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: odsci-cli-${{ matrix.os }}-${{ matrix.arch }}
-        path: dist/*
-    
+      - uses: goreleaser/goreleaser-action@v5
+        with:
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_NOTES_FILE: release_notes.md
