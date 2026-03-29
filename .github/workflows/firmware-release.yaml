@@ -27,16 +27,37 @@ jobs:
       - name: Rename binaries
         run: |
           VERSION=${GITHUB_REF_NAME#firmware/}
-          mv build/Release/odsci.bin build/Release/odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.bin
-          mv build/Release/odsci.hex build/Release/odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.hex
+          mv build/Release/odsci.bin build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.bin
+          mv build/Release/odsci.hex build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.hex
       - name: Generate checksums
         run: |
           cd build/Release
-          sha256sum odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.bin odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.hex > checksums.txt
+          sha256sum odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.bin odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.hex > checksums.txt
+      - name: Extract changelog
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          awk "/^## \[${VERSION}\]/{found=1; next} /^## \[/{found=0} found{print}" CHANGELOG.md > release_notes.md
+      - name: Add DFU instructions
+        run: |
+          cat >> release_notes.md << 'EOF'
+          
+          ## Instructions for flashing an ODSCI board with `dfu-util`
+          
+          1. Unplug the ODSCI board from your computer
+          2. Hold down the DFU button on the side, with a SIM ejector tool, and while holding it pressed, plug the board into your computer
+          3. After its plugged in, and the power LED turns on, release the DFU button
+          4. Flash using dfu-util:
+          ```
+          dfu-util -a 0 -s 0x08000000:leave -D odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.bin
+          ```
+          5. Optional: If it does not automatically reset and boot normally, you may have to unplug it and plug it back in (without pressing the DFU button!) 
+      
+          > Note: If flashing fails or the board appears unresponsive, re-enter DFU mode and reflash. The board cannot be permanently bricked via DFU (I have tried it).
+          EOF
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.bin
-            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-stm32f446re.hex
+            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}.bin
+            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}.hex
             firmware/build/Release/checksums.txt
