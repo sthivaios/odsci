@@ -23,3 +23,12 @@ void led_control(const uint64_t led_pin, const bool state) {
     GPIOA->BSRR = led_pin;
   }
 }
+
+#if CLED_IS_FOR_ERRORS_INSTEAD == 1
+void errorled_on(void) {
+  GPIOA->BSRR = CAPTURE_LED;
+}
+void errorled_off(void) {
+  GPIOA->BSRR = CAPTURE_LED << 16;
+}
+#endif
