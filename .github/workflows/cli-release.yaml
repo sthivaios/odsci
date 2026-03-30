@@ -8,6 +8,9 @@ on:
 jobs:
   release:
     runs-on: proxmox-lxc
+    defaults:
+      run:
+        working-directory: cli
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,6 +27,35 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Build binaries
+        run: |
+          mkdir -p dist
+          platforms=("darwin/amd64" "darwin/arm64" "windows/amd64" "windows/arm64")
+          for platform in "${platforms[@]}"; do
+            GOOS="${platform%/*}"
+            GOARCH="${platform#*/}"
+            output="dist/odsci-$VERSION-$GOOS-$GOARCH"
+            [ "$GOOS" = "windows" ] && output="$output.exe"
+            GOOS=$GOOS GOARCH=$GOARCH go build \
+              -ldflags="-s -w -X github.com/sthivaios/odsci/cmd.Version=$VERSION" \
+              -o "$output" .
+          done
+
+      - name: Create archives
+        run: |
+          cd dist
+          for f in odsci-*-darwin-*; do
+            tar -czf "${f}.tar.gz" "$f" && rm "$f"
+          done
+          for f in odsci-*.exe; do
+            zip "${f%.exe}.zip" "$f" && rm "$f"
+          done
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+
       - name: Extract changelog
         id: changelog
         run: |
@@ -32,20 +64,16 @@ jobs:
             $0 ~ "^## \\[" ver "\\]" {found=1; next}
             $0 ~ "^## \\[" {found=0}
             found {print}
-          ' cli/CHANGELOG.md)
+          ' CHANGELOG.md)
           if [ -z "$CHANGES" ]; then
             CHANGES="No changelog entry was found for this release."
           fi
-
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - uses: goreleaser/goreleaser-action@v5
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          version: "~> v2"
-          args: release --clean --config cli/.goreleaser.yaml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GORELEASER_NOTES: ${{ steps.changelog.outputs.changelog }}
-          GORELEASER_CURRENT_VERSION: ${{ steps.version.outputs.version }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          files: cli/dist/*
