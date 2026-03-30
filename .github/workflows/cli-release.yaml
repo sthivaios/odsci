@@ -33,7 +33,7 @@ jobs:
       - name: Build binaries
         run: |
           mkdir -p dist
-          platforms=("darwin/amd64" "darwin/arm64" "windows/amd64" "windows/arm64")
+          platforms=("darwin/amd64" "darwin/arm64" "windows/amd64" "windows/arm64" "linux/amd64" "linux/arm64")
           for platform in "${platforms[@]}"; do
             GOOS="${platform%/*}"
             GOARCH="${platform#*/}"
@@ -47,7 +47,7 @@ jobs:
       - name: Create archives
         run: |
           cd dist
-          for f in odsci-*-darwin-*; do
+          for f in odsci-*-darwin-* odsci-*-linux-*; do
             tar -czf "${f}.tar.gz" "$f" && rm "$f"
           done
           for f in odsci-*.exe; do
