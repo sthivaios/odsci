@@ -34,6 +34,21 @@ import (
 	"go.bug.st/serial"
 )
 
+func read_temperature(port serial.Port, scanner *bufio.Scanner) string {
+	port.Write([]byte("GET_TEMPERATURE\r"))
+	scanner.Scan()
+	line := scanner.Text()
+	if strings.HasPrefix(line, "ERROR:") {
+		return color.MagentaString("Sensor error: %s", line)
+	}
+	value, err := strconv.ParseFloat(strings.TrimSpace(line), 64)
+	if err != nil {
+		return color.MagentaString("Error parsing the temperature reading")
+	} else {
+		return fmt.Sprintf("%0.2f", value);
+	}
+}
+
 // readCmd represents the read command
 var readCmd = &cobra.Command{
 	Use:   "read",
@@ -47,6 +62,7 @@ flag, to continuously update the reading in your terminal.
 The command accepts other arguments too.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		
+		// extract flags/args
 		serialPort, _ := cmd.Flags().GetString("port")
 		watch, _ := cmd.Flags().GetBool("watch");
 		interval, _ := cmd.Flags().GetInt("interval")
@@ -56,9 +72,11 @@ The command accepts other arguments too.`,
 			fmt.Println(color.HiRedString("No serial port specified! Use --port to specify a port."))
 		}
 
+		// exit gracefully on ctrl+c
 		var sigChan = make(chan os.Signal, 1)
 		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
+		// configure the serial port
 		mode := &serial.Mode{
 			BaudRate: 115200,
 		}
@@ -71,6 +89,7 @@ The command accepts other arguments too.`,
 			port.Write([]byte("SET_CLED_ON\r"))
 		}
 
+		// handle ctrl+c
 		go func() {
 			<-sigChan
 			port.Write([]byte("SET_CLED_OFF\r"))
@@ -78,34 +97,19 @@ The command accepts other arguments too.`,
 			os.Exit(0)
 		}()
 
+		// new scanner for the serial port
 		scanner := bufio.NewScanner(port)
 
+		// main logic
 		if (watch) {
 			fmt.Print(color.HiBlueString("Reading ODSCI probe on %s, at a %ds interval\r\n\r\n", serialPort, interval))
 			for (true) {
-				port.Write([]byte("GET_TEMPERATURE\r"))
-				scanner.Scan()
-				line := scanner.Text()
-				value, err := strconv.ParseFloat(strings.TrimSpace(line), 64)
-				if err != nil {
-					fmt.Println(color.MagentaString("Error polling sensor"))
-					continue
-				} else {
-					fmt.Println(value);
-				}
+				fmt.Println(read_temperature(port, scanner))
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
-
 		} else {
-			port.Write([]byte("GET_TEMPERATURE\r"))
-			scanner.Scan()
-			line := scanner.Text()
-			value, err := strconv.ParseFloat(strings.TrimSpace(line), 64)
-			if err != nil {
-				fmt.Println(color.MagentaString("Error polling sensor"))
-			} else {
-				fmt.Println(value);
-			}
+			fmt.Print(color.HiBlueString("Reading ODSCI probe on %s\r\n\r\n", serialPort))
+			fmt.Println(read_temperature(port, scanner));
 		}
 
 	},
