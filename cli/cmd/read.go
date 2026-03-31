@@ -31,6 +31,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+	"github.com/sthivaios/odsci/utils"
 	"go.bug.st/serial"
 )
 
@@ -65,6 +66,7 @@ The command accepts other arguments too.`,
 		// extract flags/args
 		serialPort, _ := cmd.Flags().GetString("port")
 		watch, _ := cmd.Flags().GetBool("watch");
+		noLog, _ := cmd.Flags().GetBool("no-log");
 		interval, _ := cmd.Flags().GetInt("interval")
 		
 		// make sure the user did enter a serial port
@@ -100,11 +102,20 @@ The command accepts other arguments too.`,
 		// new scanner for the serial port
 		scanner := bufio.NewScanner(port)
 
+		utils.ClearBuffer(port, scanner);
+
 		// main logic
 		if (watch) {
 			fmt.Print(color.HiBlueString("Reading ODSCI probe on %s, at a %ds interval\r\n\r\n", serialPort, interval))
+			if (noLog) {
+				fmt.Print(color.HiYellowString("You are using the \"--no-log\" flag. If the CLI looks like it has frozen, it hasn't.\r\nThe temperature is just not updating.\r\n\r\n"))
+			}
 			for (true) {
-				fmt.Println(read_temperature(port, scanner))
+				if (!noLog) {
+					fmt.Println(read_temperature(port, scanner))
+				} else {
+					fmt.Printf("\r%-10s",read_temperature(port, scanner))
+				}
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
 		} else {
@@ -120,4 +131,5 @@ func init() {
 	readCmd.Flags().StringP("port", "p", "", "Serial port of the ODSCI probe")
 	readCmd.Flags().BoolP("watch", "w", false, `Continuously watch the temperature reading`)
 	readCmd.Flags().IntP("interval", "i", 1, "Interval for watching, if using the --watch flag")
+	readCmd.Flags().Bool("no-log", false, "No log: applies only if --watch is being used and does't log previous values")
 }
