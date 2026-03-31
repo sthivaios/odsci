@@ -2,7 +2,7 @@ name: Firmware Release
 on:
   push:
     tags:
-      - 'firmware/v*'
+      - "firmware/v*"
 
 permissions:
   contents: write
@@ -46,9 +46,9 @@ jobs:
       - name: Add DFU instructions
         run: |
           cat >> release_notes.md << 'EOF'
-          
+
           ## Instructions for flashing an ODSCI board with `dfu-util`
-          
+
           1. Unplug the ODSCI board from your computer
           2. Hold down the DFU button on the side, with a SIM ejector tool, and while holding it pressed, plug the board into your computer
           3. After its plugged in, and the power LED turns on, release the DFU button
@@ -57,12 +57,13 @@ jobs:
           dfu-util -a 0 -s 0x08000000:leave -D odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.bin
           ```
           5. Optional: If it does not automatically reset and boot normally, you may have to unplug it and plug it back in (without pressing the DFU button!) 
-      
+
           > Note: If flashing fails or the board appears unresponsive, re-enter DFU mode and reflash. The board cannot be permanently bricked via DFU (I have tried it).
           EOF
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          name: Firmware v${{ steps.version.outputs.version }}
           body_path: firmware/release_notes.md
           files: |
             firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.bin
