@@ -26,7 +26,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
@@ -46,14 +45,23 @@ of samples from the probe, at a specific interval, and export
 the captured data.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		var sigChan = make(chan os.Signal, 1)
-		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
+		// extract flags/args
 		serialPort, _ := cmd.Flags().GetString("port")
         samples, _ := cmd.Flags().GetInt("samples")
         interval, _ := cmd.Flags().GetInt("interval")
         output, _ := cmd.Flags().GetString("output")
 
+		// make sure the user did enter a serial port
+		if (serialPort == "") {
+			fmt.Println(color.HiRedString("No serial port specified! Use --port to specify a port."))
+		}
+
+		// exit gracefully on ctrl+c
+		var sigChan = make(chan os.Signal, 1)
+		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+		// configure the serial port
 		mode := &serial.Mode{
 			BaudRate: 115200,
 		}
@@ -62,10 +70,11 @@ the captured data.`,
 			var errorString string = color.HiRedString("\r\nThere was an error while trying to connect to the ODSCI probe.\r\nThe serial port you entered may be incorrect.\r\nTo scan for serial ports on your computer, run ") + color.HiMagentaString("'odsci scan'") + color.HiRedString(".\r\n\r\nError details:\r\n\r\n")
 			print(errorString)
 			log.Fatal(err)
-		} else {
-			port.Write([]byte("SET_CLED_ON\r"))
 		}
 
+		port.Write([]byte("SET_CLED_ON\r"))
+
+		// handle ctrl+c
 		go func() {
 			<-sigChan
 			port.Write([]byte("SET_CLED_OFF\r"))
@@ -73,7 +82,17 @@ the captured data.`,
 			os.Exit(0)
 		}()
 
+		// new scanner for the serial port
 		scanner := bufio.NewScanner(port)
+
+		// clear serial buffer
+		utils.ClearBuffer(port, scanner);
+
+		// get board info & turn on CLED
+		boardInfo, _ := utils.BoardCheck(port, scanner);
+		if (boardInfo.CledIsUsedForErrors == true) {
+			port.Write([]byte("SET_CLED_ON\r"))
+		}
 
 		capturedSamples := make([]utils.Sample, 0, samples)
 
@@ -81,20 +100,19 @@ the captured data.`,
 		var totalSeconds float64 = float64(samples-1) * float64(interval) + (float64(samples) * float64(0.85))
 		print(fmt.Sprintf("Capturing %d samples, at a %s interval\r\nEstimated time until completetion: %s\r\nCapture should be completed at around %s\r\n\r\n", samples, utils.TimeString(int64(interval)), utils.TimeString(int64(totalSeconds)), time.Unix((time.Now().Unix() + int64(totalSeconds)), 0).Format("15:04:05")))
 
+		// new progress bar
 		bar := progressbar.New(samples)
 		for i := range samples {
+			// read and put values in the struct
 			var sample utils.Sample
 			sample.Timestamp = time.Now().Unix()
-			port.Write([]byte("GET_TEMPERATURE\r"))
-			scanner.Scan()
-			line := scanner.Text()
-			value, err := strconv.ParseFloat(strings.TrimSpace(line), 64)
-			if err != nil {
-				sample.Value = -999
-				continue
-			}
+			_, value := utils.ReadTemperature(port, scanner);
 			sample.Value = value
+
+			// append the struct to the samples
 			capturedSamples = append(capturedSamples, sample)
+
+			// advance the progress bar
 			bar.Add(1)
 			
 			// print(fmt.Sprintf("Capturing samples: %.0f%% [%d/%d]\r\n", (float64(i+1)/float64(samples))*100, i+1, samples))
@@ -103,6 +121,7 @@ the captured data.`,
 			}
 		}
 
+		// write csv
 		f, err := os.Create(output)
 		if err != nil {
 			log.Fatal(err)
@@ -122,7 +141,10 @@ the captured data.`,
 			})
 		}
 
-		port.Write([]byte("SET_CLED_OFF\r"))
+		// turn off CLED
+		if (boardInfo.CledIsUsedForErrors == true) {
+			port.Write([]byte("SET_CLED_OFF\r"))
+		}
 	},
 }
 
