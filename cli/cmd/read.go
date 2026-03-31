@@ -51,11 +51,6 @@ The command accepts other arguments too.`,
 		watch, _ := cmd.Flags().GetBool("watch");
 		noLog, _ := cmd.Flags().GetBool("no-log");
 		interval, _ := cmd.Flags().GetInt("interval")
-		
-		// make sure the user did enter a serial port
-		if (serialPort == "") {
-			fmt.Println(color.HiRedString("No serial port specified! Use --port to specify a port."))
-		}
 
 		// exit gracefully on ctrl+c
 		var sigChan = make(chan os.Signal, 1)
@@ -118,6 +113,7 @@ The command accepts other arguments too.`,
 func init() {
 	rootCmd.AddCommand(readCmd)
 	readCmd.Flags().StringP("port", "p", "", "Serial port of the ODSCI probe")
+	readCmd.MarkFlagRequired("port")
 	readCmd.Flags().BoolP("watch", "w", false, `Continuously watch the temperature reading`)
 	readCmd.Flags().IntP("interval", "i", 1, "Interval for watching, if using the --watch flag")
 	readCmd.Flags().Bool("no-log", false, "No log: applies only if --watch is being used and does't log previous values")

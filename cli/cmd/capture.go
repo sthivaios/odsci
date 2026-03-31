@@ -52,11 +52,6 @@ the captured data.`,
         interval, _ := cmd.Flags().GetInt("interval")
         output, _ := cmd.Flags().GetString("output")
 
-		// make sure the user did enter a serial port
-		if (serialPort == "") {
-			fmt.Println(color.HiRedString("No serial port specified! Use --port to specify a port."))
-		}
-
 		// exit gracefully on ctrl+c
 		var sigChan = make(chan os.Signal, 1)
 		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
@@ -152,7 +147,9 @@ the captured data.`,
 func init() {
 	rootCmd.AddCommand(captureCmd)
 	captureCmd.Flags().StringP("port", "p", "", "Serial port")
+	captureCmd.MarkFlagRequired("port")
 	captureCmd.Flags().IntP("samples", "n", 100, "Number of samples")
 	captureCmd.Flags().IntP("interval", "i", 10, "Interval between samples in seconds")
 	captureCmd.Flags().StringP("output", "o", "", "Output path")
+	captureCmd.MarkFlagRequired("output")
 }
