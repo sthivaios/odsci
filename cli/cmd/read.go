@@ -24,8 +24,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
@@ -34,21 +32,6 @@ import (
 	"github.com/sthivaios/odsci/utils"
 	"go.bug.st/serial"
 )
-
-func read_temperature(port serial.Port, scanner *bufio.Scanner) string {
-	port.Write([]byte("GET_TEMPERATURE\r"))
-	scanner.Scan()
-	line := scanner.Text()
-	if strings.HasPrefix(line, "ERROR:") {
-		return color.MagentaString("Sensor error: %s", line)
-	}
-	value, err := strconv.ParseFloat(strings.TrimSpace(line), 64)
-	if err != nil {
-		return color.MagentaString("Error parsing the temperature reading")
-	} else {
-		return fmt.Sprintf("%0.2f", value);
-	}
-}
 
 // readCmd represents the read command
 var readCmd = &cobra.Command{
@@ -102,6 +85,7 @@ The command accepts other arguments too.`,
 		// new scanner for the serial port
 		scanner := bufio.NewScanner(port)
 
+		// clear serial buffer
 		utils.ClearBuffer(port, scanner);
 
 		// main logic
@@ -113,16 +97,22 @@ The command accepts other arguments too.`,
 			for (true) {
 				if (!noLog) {
 					timestamp := time.Now().UTC().Format("15:04:05")
-					fmt.Printf("[%s]: %s\r\n",timestamp,read_temperature(port, scanner))
+					fmt.Printf("[%s]: %s\r\n",timestamp, func() string {
+						s, _ := utils.ReadTemperature(port, scanner)
+						return s
+					}())
 				} else {
 					timestamp := time.Now().UTC().Format("15:04:05")
-					fmt.Printf("\r[%s]: %-10s",timestamp,read_temperature(port, scanner))
+					fmt.Printf("\r[%s]: %-10s",timestamp, func() string {
+						s, _ := utils.ReadTemperature(port, scanner)
+						return s
+					}())
 				}
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
 		} else {
 			fmt.Print(color.HiBlueString("Reading ODSCI probe on %s\r\n\r\n", serialPort))
-			fmt.Println(read_temperature(port, scanner));
+			fmt.Println(utils.ReadTemperature(port, scanner));
 		}
 
 	},
