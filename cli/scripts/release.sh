@@ -19,7 +19,7 @@ set -e
 
 
 # prompt the developer for version
-read -p "Enter CLI version to release (e.g., v1.0.0 - INCLUDE THE "v"!!): " VERSION
+read -p 'Enter CLI version to release (e.g., v1.0.0 - INCLUDE THE "v"!!): ' VERSION
 
 if [[ -z "$VERSION" ]]; then
     echo "No version entered. Aborting."
@@ -36,8 +36,10 @@ fi
 
 # ensure changelog contains the version
 if ! grep -qE "^## \[$VERSION\]" CHANGELOG.md; then
+    echo ""
     echo "CHANGELOG.md does not contain an entry for $VERSION"
     echo "Expected a section like: ## [$VERSION] - YYYY-MM-DD"
+    echo "Aborted"
     exit 1
 fi
 
