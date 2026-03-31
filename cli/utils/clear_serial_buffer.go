@@ -18,12 +18,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package utils
 
-type Sample struct {
-	Timestamp int64
-	Value float64
-}
+import (
+	"bufio"
+	"time"
 
-type BoardInfo struct {
-	CledIsUsedForErrors bool
-	FirmwareVersion string
+	"go.bug.st/serial"
+)
+
+func ClearBuffer(port serial.Port, scanner *bufio.Scanner) {
+	port.SetReadTimeout(100 * time.Millisecond)
+	buf := make([]byte, 256)
+	for {
+		n, _ := port.Read(buf)
+		if n == 0 {
+			break
+		}
+	}
+	// reset to blocking
+	port.SetReadTimeout(serial.NoTimeout)
 }
