@@ -70,14 +70,11 @@ The command accepts other arguments too.`,
 			var errorString string = color.HiRedString("\r\nThere was an error while trying to connect to the ODSCI probe.\r\nThe serial port you entered may be incorrect.\r\nTo scan for serial ports on your computer, run ") + color.HiMagentaString("'odsci scan'") + color.HiRedString(".\r\n\r\nError details:\r\n\r\n")
 			print(errorString)
 			log.Fatal(err)
-		} else {
-			port.Write([]byte("SET_CLED_ON\r"))
 		}
 
 		// handle ctrl+c
 		go func() {
 			<-sigChan
-			port.Write([]byte("SET_CLED_OFF\r"))
 			color.HiRed("\r\n\r\nCancelled.")
 			os.Exit(0)
 		}()

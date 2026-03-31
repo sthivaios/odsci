@@ -31,7 +31,6 @@ func BoardCheck(port serial.Port, scanner *bufio.Scanner) (BoardInfo, error) {
 	port.Write([]byte("GET_INFO\r"))
 	scanner.Scan()
 	line := scanner.Text()
-	fmt.Println(line)
 	if strings.HasPrefix(line, "ERROR:") {
 		var errorString string = fmt.Sprintf("ODSCI error: %s", line);
 		return BoardInfo{}, errors.New(errorString)
