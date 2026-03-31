@@ -34,6 +34,13 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
+# ensure changelog contains the version
+if ! grep -qE "^## \[$VERSION\]" CHANGELOG.md; then
+    echo "CHANGELOG.md does not contain an entry for $VERSION"
+    echo "Expected a section like: ## [$VERSION] - YYYY-MM-DD"
+    exit 1
+fi
+
 # ensure we are on the main branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$BRANCH" != "main" && "$BRANCH" != "master" ]]; then
