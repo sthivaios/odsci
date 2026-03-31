@@ -15,13 +15,13 @@ You can grab a pre-built CLI binary from the releases page for your platform/OS,
 
 Connect the ODSCI probe to your computer, and find the serial port that it uses (COM port on Windows, or a /dev/tty device on Linux and MacOS).
 
-Then use the CLI as follows:
+Then, you can use the `capture` command to save a given amount of samples as a CSV file.
 
 ```shell
-./odsci --port THE_SERIAL_PORT_HERE --samples 100 --interval 10 --output "./output.png"
+./odsci --port THE_SERIAL_PORT_HERE --samples 100 --interval 10 --output "./output.csv"
 ```
 
-If you would also like a CSV with the values, and not just a graph, you can append `--csv-output "./values.csv"`, where, of course, "values.csv" is the filename.
+The CLI has more features than just the `capture` command. Run `./odsci --help` for more information on the commands, or read the documentation.
 
 ## Introduction
 
