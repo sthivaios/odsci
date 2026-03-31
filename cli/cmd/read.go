@@ -112,9 +112,11 @@ The command accepts other arguments too.`,
 			}
 			for (true) {
 				if (!noLog) {
-					fmt.Println(read_temperature(port, scanner))
+					timestamp := time.Now().UTC().Format("15:04:05")
+					fmt.Printf("[%s]: %s\r\n",timestamp,read_temperature(port, scanner))
 				} else {
-					fmt.Printf("\r%-10s",read_temperature(port, scanner))
+					timestamp := time.Now().UTC().Format("15:04:05")
+					fmt.Printf("\r[%s]: %-10s",timestamp,read_temperature(port, scanner))
 				}
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
