@@ -1,5 +1,5 @@
 package utils
 
-func convertCelsiusToFahrenheit(celsius float64) float64 {
+func ConvertCelsiusToFahrenheit(celsius float64) float64 {
 	return celsius * (9/5) + 32
 }
