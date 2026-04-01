@@ -51,6 +51,12 @@ The command accepts other arguments too.`,
 		watch, _ := cmd.Flags().GetBool("watch");
 		noLog, _ := cmd.Flags().GetBool("no-log");
 		interval, _ := cmd.Flags().GetInt("interval")
+		unit, _ := cmd.Flags().GetString("unit")
+
+		if (unit != "c" && unit != "f" && unit != "k") {
+			print(color.MagentaString("The --unit (-u) flag only accepts: 'c', 'f', 'k',\nbut you entered \"%s\".\r\n\r\nReminder that the default is 'c'.\r\n", unit))
+			return
+		}
 
 		// exit gracefully on ctrl+c
 		var sigChan = make(chan os.Signal, 1)
@@ -86,19 +92,22 @@ The command accepts other arguments too.`,
 			if (noLog) {
 				fmt.Print(color.HiYellowString("You are using the \"--no-log\" flag. If the CLI looks like it has frozen, it hasn't.\r\nThe temperature is just not updating.\r\n\r\n"))
 			}
+			_, raw_temp := utils.ReadTemperature(port, scanner)
+			var temp_to_print float64
+			if (unit == "c") {
+				temp_to_print = raw_temp
+			} else if (unit == "f") {
+				temp_to_print = utils.ConvertCelsiusToFahrenheit(raw_temp)
+			} else if (unit == "k") {
+				temp_to_print = utils.ConvertCelsiusToKelvin(raw_temp)
+			}
 			for (true) {
 				if (!noLog) {
 					timestamp := time.Now().UTC().Format("15:04:05")
-					fmt.Printf("[%s]: %s\r\n",timestamp, func() string {
-						s, _ := utils.ReadTemperature(port, scanner)
-						return s
-					}())
+					fmt.Printf("[%s]: %s\r\n",timestamp, temp_to_print)
 				} else {
 					timestamp := time.Now().UTC().Format("15:04:05")
-					fmt.Printf("\r[%s]: %-10s",timestamp, func() string {
-						s, _ := utils.ReadTemperature(port, scanner)
-						return s
-					}())
+					fmt.Printf("\r[%s]: %-10s",timestamp, temp_to_print)
 				}
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
@@ -117,6 +126,5 @@ func init() {
 	readCmd.Flags().BoolP("watch", "w", false, `Continuously watch the temperature reading`)
 	readCmd.Flags().IntP("interval", "i", 1, "Interval for watching, if using the --watch flag")
 	readCmd.Flags().Bool("no-log", false, "No log: applies only if --watch is being used and does't log previous values")
-	readCmd.Flags().BoolP("fahrenheit", "f", false, "Uses values in degrees Fahrenheit instead of Celsius")
-	readCmd.Flags()
+	readCmd.Flags().StringP("unit", "u", "c", "Select a unit: 'c' for Celsius, 'f' for Fahrenheit or 'k' for Kelvin")
 }
