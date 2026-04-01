@@ -51,6 +51,7 @@ the captured data.`,
         samples, _ := cmd.Flags().GetInt("samples")
         interval, _ := cmd.Flags().GetInt("interval")
         output, _ := cmd.Flags().GetString("output")
+		iso8601, _ := cmd.Flags().GetBool("iso-8601")
 
 		// exit gracefully on ctrl+c
 		var sigChan = make(chan os.Signal, 1)
@@ -100,7 +101,14 @@ the captured data.`,
 		for i := range samples {
 			// read and put values in the struct
 			var sample utils.Sample
-			sample.Timestamp = time.Now().Unix()
+
+			// chose timestamp type depending on the iso8601 flag
+			if (!iso8601) {
+				sample.Timestamp = string(time.Now().Unix())
+			} else {
+				sample.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
+			}
+
 			_, value := utils.ReadTemperature(port, scanner);
 			sample.Value = value
 
@@ -131,7 +139,7 @@ the captured data.`,
 
 		for _, sample := range capturedSamples {
 			writer.Write([]string{
-				strconv.FormatInt(sample.Timestamp, 10),
+				sample.Timestamp,
 				strconv.FormatFloat(sample.Value, 'f', 2, 64),
 			})
 		}
@@ -152,4 +160,5 @@ func init() {
 	captureCmd.Flags().IntP("interval", "i", 10, "Interval between samples in seconds")
 	captureCmd.Flags().StringP("output", "o", "", "Output path")
 	captureCmd.MarkFlagRequired("output")
+	captureCmd.Flags().Bool("iso-8601", false, "Uses ISO 8601 timestamps in the CSV instead")
 }
