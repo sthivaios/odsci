@@ -6,7 +6,9 @@ Note: Changelog started at v1.0.0. See commit history for changes prior to this 
 
 ### Added
 
-- Added the ability to use ISO 8601 instead of UNIX timestmaps in the CSV output of the capture command
+- Added the ability to use ISO 8601 instead of UNIX timestmaps in the CSV output of the `capture` command
+- Added the ability to select a unit of measurement in the `read` command with the `--unit` or `-u` flag
+- The `capture` command now stores values in degrees Celsius, Fahrenheit and Kelvin in the CSV in separate columns
 
 ### Fixed
 
