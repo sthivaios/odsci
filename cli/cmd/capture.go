@@ -111,6 +111,7 @@ the captured data.`,
 			sample.Value = value
 
 			sample.ValueInFahrenheit = utils.ConvertCelsiusToFahrenheit(value)
+			sample.ValueInKelvin = utils.ConvertCelsiusToKelvin(value)
 
 			// append the struct to the samples
 			capturedSamples = append(capturedSamples, sample)
