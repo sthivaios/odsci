@@ -102,13 +102,15 @@ the captured data.`,
 
 			// chose timestamp type depending on the iso8601 flag
 			if (!iso8601) {
-				sample.Timestamp = string(time.Now().Unix())
+				sample.Timestamp = string(rune(time.Now().Unix()))
 			} else {
 				sample.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 			}
 
 			_, value := utils.ReadTemperature(port, scanner);
 			sample.Value = value
+
+			sample.ValueInFahrenheit = utils.ConvertCelsiusToFahrenheit(value)
 
 			// append the struct to the samples
 			capturedSamples = append(capturedSamples, sample)
@@ -133,12 +135,13 @@ the captured data.`,
 		defer writer.Flush()
 
 		// header row
-		writer.Write([]string{"timestamp", "temperature"})
+		writer.Write([]string{"timestamp", "temperature_c", "temperature_f"})
 
 		for _, sample := range capturedSamples {
 			writer.Write([]string{
 				sample.Timestamp,
 				strconv.FormatFloat(sample.Value, 'f', 2, 64),
+				strconv.FormatFloat(sample.ValueInFahrenheit, 'f', 2, 64),
 			})
 		}
 
