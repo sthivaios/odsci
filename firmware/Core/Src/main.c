@@ -57,7 +57,7 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 
 TakeAction_Params_T TakeAction_ClearStruct;
-TakeAction_Params_T TakeAction_Params;
+volatile TakeAction_Params_T TakeAction_Params;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -119,15 +119,24 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   // ReSharper disable once CppDFAEndlessLoop
-  while (1)
-  {
-    take_action(TakeAction_Params);
+  while (1) {
+    // disable interrupts to prevent a race condition if the usb interrupt tries to access the var too
+    __disable_irq();
+    // before clearing the var, we store the value in a new var to pass it to the take_action() func
+    const TakeAction_Params_T local_params = TakeAction_Params;
     TakeAction_Params = TakeAction_ClearStruct;
-    HAL_Delay(1);
-    /* USER CODE END WHILE */
+    // enable the interrupts again
+    __enable_irq();
 
-    /* USER CODE BEGIN 3 */
+    // now actually take action
+    take_action(local_params);
+
+    HAL_Delay(1);
   }
+  /* USER CODE END WHILE */
+
+  /* USER CODE BEGIN 3 */
+
   /* USER CODE END 3 */
 }
 

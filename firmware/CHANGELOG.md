@@ -2,6 +2,11 @@
  
 Note: Changelog started at v1.1.0. See commit history for changes prior to this version.
 
+## [Unreleased]
+
+### Fixed
+- Fixed a minor bug in the main firmware loop, that could potentially cause a race condition
+
 ## [v1.1.0] - 2026-03-29
 
 ### Added
