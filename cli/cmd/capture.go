@@ -136,13 +136,14 @@ the captured data.`,
 		defer writer.Flush()
 
 		// header row
-		writer.Write([]string{"timestamp", "temperature_c", "temperature_f"})
+		writer.Write([]string{"timestamp", "temperature_c", "temperature_f", "temperature_k"})
 
 		for _, sample := range capturedSamples {
 			writer.Write([]string{
 				sample.Timestamp,
 				strconv.FormatFloat(sample.Value, 'f', 2, 64),
 				strconv.FormatFloat(sample.ValueInFahrenheit, 'f', 2, 64),
+				strconv.FormatFloat(sample.ValueInKelvin, 'f', 2, 64),
 			})
 		}
 

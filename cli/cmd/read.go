@@ -118,4 +118,5 @@ func init() {
 	readCmd.Flags().IntP("interval", "i", 1, "Interval for watching, if using the --watch flag")
 	readCmd.Flags().Bool("no-log", false, "No log: applies only if --watch is being used and does't log previous values")
 	readCmd.Flags().BoolP("fahrenheit", "f", false, "Uses values in degrees Fahrenheit instead of Celsius")
+	readCmd.Flags()
 }
