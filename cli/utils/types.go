@@ -22,6 +22,7 @@ type Sample struct {
 	Timestamp string
 	Value float64
 	ValueInFahrenheit float64
+	ValueInKelvin float64
 }
 
 type BoardInfo struct {
