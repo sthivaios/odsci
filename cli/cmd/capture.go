@@ -68,8 +68,6 @@ the captured data.`,
 			log.Fatal(err)
 		}
 
-		port.Write([]byte("SET_CLED_ON\r"))
-
 		// handle ctrl+c
 		go func() {
 			<-sigChan

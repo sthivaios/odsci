@@ -2,6 +2,16 @@
 
 Note: Changelog started at v1.0.0. See commit history for changes prior to this version.
 
+## [Unreleased]
+
+### Added
+
+- Added the ability to use ISO 8601 instead of UNIX timestmaps in the CSV output of the capture command
+
+### Fixed
+
+- Fixed minor bug where the capture command would attempt to turn on the CLED without checking the flag first
+
 ## [v1.1.1] - 2026-03-31
 
 ### Fixed
