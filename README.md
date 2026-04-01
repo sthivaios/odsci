@@ -1,11 +1,11 @@
 # ODSCI
 
-![CLI Latest](https://img.shields.io/github/v/tag/sthivaios/odsci?filter=cli/*&label=latest%20cli%20version)
-![Firmware Latest](https://img.shields.io/github/v/tag/sthivaios/odsci?filter=firmware/*&label=latest%20firmware%20version)
-
-**An STM32-based USB interface for DS18B20 temperature sensors**
-
-![A picture taken during the development of ODSCI showing an STM32 Nucleo board and a breadboard connected to a MacBook Pro](./assets/IMG_7506.jpg)
+<div align="center">
+  <img alt="test" src="https://img.shields.io/github/v/tag/sthivaios/odsci?filter=cli/*&label=latest%20cli%20version">
+  <img alt="test" src=https://img.shields.io/github/v/tag/sthivaios/odsci?filter=firmware/*&label=latest%20firmware%20version">
+  <h2 style="font-weight: bold;">An STM32-based USB interface for DS18B20 temperature sensors</h2>
+  <img width="400" alt="A picture taken during the very early development of ODSCI showing an STM32 Nucleo board and a breadboard connected to a MacBook Pro" src="./assets/IMG_7506.jpg" />
+</div>
 
 ## Getting Started - How to use ODSCI
 
