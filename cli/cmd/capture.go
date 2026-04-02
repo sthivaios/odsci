@@ -102,7 +102,7 @@ the captured data.`,
 
 			// chose timestamp type depending on the iso8601 flag
 			if (!iso8601) {
-				sample.Timestamp = string(rune(time.Now().Unix()))
+				sample.Timestamp = strconv.FormatInt(time.Now().Unix(), 10)
 			} else {
 				sample.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 			}
