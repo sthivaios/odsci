@@ -92,16 +92,30 @@ The command accepts other arguments too.`,
 			if (noLog) {
 				fmt.Print(color.HiYellowString("You are using the \"--no-log\" flag. If the CLI looks like it has frozen, it hasn't.\r\nThe temperature is just not updating.\r\n\r\n"))
 			}
+			var prevTemperature float64;
+			var firstLog bool = true;
 			for (true) {
 				_, raw_temp := utils.ReadTemperature(port, scanner)
 				var temp_to_print string
-				switch unit {
-					case "c":
-						temp_to_print = fmt.Sprintf("%0.2fºC", raw_temp)
-					case "f":
-						temp_to_print = fmt.Sprintf("%0.2fºF", utils.ConvertCelsiusToFahrenheit(raw_temp))
-					case "k":
-						temp_to_print = fmt.Sprintf("%0.2fºK", utils.ConvertCelsiusToKelvin(raw_temp))
+				var difference = raw_temp - prevTemperature;
+				if (!firstLog) {
+					switch unit {
+						case "c":
+							temp_to_print = fmt.Sprintf("%+0.2fºC (%+0.2fºC)", raw_temp, difference)
+						case "f":
+							temp_to_print = fmt.Sprintf("%+0.2fºF (%+0.2fºF)", utils.ConvertCelsiusToFahrenheit(raw_temp), utils.ConvertCelsiusToFahrenheit(difference))
+						case "k":
+							temp_to_print = fmt.Sprintf("%+0.2fºK (%+0.2fºK)", utils.ConvertCelsiusToKelvin(raw_temp), utils.ConvertCelsiusToFahrenheit(difference))
+					}
+				} else {
+					switch unit {
+						case "c":
+							temp_to_print = fmt.Sprintf("%+0.2fºC", raw_temp)
+						case "f":
+							temp_to_print = fmt.Sprintf("%+0.2fºF", utils.ConvertCelsiusToFahrenheit(raw_temp))
+						case "k":
+							temp_to_print = fmt.Sprintf("%+0.2fºK", utils.ConvertCelsiusToKelvin(raw_temp))
+					}
 				}
 				if (!noLog) {
 					timestamp := time.Now().UTC().Format("15:04:05")
@@ -110,6 +124,8 @@ The command accepts other arguments too.`,
 					timestamp := time.Now().UTC().Format("15:04:05")
 					fmt.Printf("\r[%s]: %-10s",timestamp, temp_to_print)
 				}
+				prevTemperature = raw_temp;
+				if (firstLog == true) { firstLog = false }
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
 		} else {
