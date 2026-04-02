@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/schollz/progressbar"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"github.com/sthivaios/odsci/utils"
 	"go.bug.st/serial"
@@ -92,7 +92,7 @@ the captured data.`,
 
 		// time estimate
 		var totalSeconds float64 = float64(samples-1) * float64(interval) + (float64(samples) * float64(0.85))
-		print(fmt.Sprintf("Capturing %d samples, at a %s interval\r\nEstimated time until completetion: %s\r\nCapture should be completed at around %s\r\n\r\n", samples, utils.TimeString(int64(interval)), utils.TimeString(int64(totalSeconds)), time.Unix((time.Now().Unix() + int64(totalSeconds)), 0).Format("15:04:05")))
+		print(fmt.Sprintf("\r\nCapturing %d samples, at a %s interval\r\nEstimated time until completetion: %s\r\nCapture should be completed at around %s\r\n\r\n", samples, utils.TimeString(int64(interval)), utils.TimeString(int64(totalSeconds)), time.Unix((time.Now().Unix() + int64(totalSeconds)), 0).Format("15:04:05")))
 
 		// new progress bar
 		bar := progressbar.New(samples)
