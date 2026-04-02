@@ -19,6 +19,7 @@ Note: Changelog started at v1.0.0. See commit history for changes prior to this 
 ### Changed
 
 - Minor changes to error handling, like error messages
+- Updated from v1.0.0 of the schollz/progressbar library, to v3
 
 ## [v1.1.1] - 2026-03-31
 
