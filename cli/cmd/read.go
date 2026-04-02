@@ -68,7 +68,7 @@ The command accepts other arguments too.`,
 		}
 		port, err := serial.Open(serialPort, mode)
 		if err != nil {
-			var errorString string = color.HiRedString("\r\nThere was an error while trying to connect to the ODSCI probe.\r\nThe serial port you entered may be incorrect.\r\nTo scan for serial ports on your computer, run ") + color.HiMagentaString("'odsci scan'") + color.HiRedString(".\r\n\r\nError details:\r\n\r\n")
+			var errorString string = color.HiRedString("\r\nThere was an error while trying to connect to the ODSCI probe.\r\nThe serial port you entered may be incorrect." + color.HiRedString("\r\n\r\nError details:\r\n\r\n"))
 			print(errorString)
 			log.Fatal(err)
 		}
