@@ -93,13 +93,14 @@ The command accepts other arguments too.`,
 				fmt.Print(color.HiYellowString("You are using the \"--no-log\" flag. If the CLI looks like it has frozen, it hasn't.\r\nThe temperature is just not updating.\r\n\r\n"))
 			}
 			_, raw_temp := utils.ReadTemperature(port, scanner)
-			var temp_to_print float64
-			if (unit == "c") {
-				temp_to_print = raw_temp
-			} else if (unit == "f") {
-				temp_to_print = utils.ConvertCelsiusToFahrenheit(raw_temp)
-			} else if (unit == "k") {
-				temp_to_print = utils.ConvertCelsiusToKelvin(raw_temp)
+			var temp_to_print string
+			switch unit {
+				case "c":
+					temp_to_print = fmt.Sprintf("%0.2f", raw_temp)
+				case "f":
+					temp_to_print = fmt.Sprintf("%0.2f", utils.ConvertCelsiusToFahrenheit(raw_temp))
+				case "k":
+					temp_to_print = fmt.Sprintf("%0.2f", utils.ConvertCelsiusToKelvin(raw_temp))
 			}
 			for (true) {
 				if (!noLog) {
