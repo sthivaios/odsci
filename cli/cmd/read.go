@@ -96,11 +96,11 @@ The command accepts other arguments too.`,
 			var temp_to_print string
 			switch unit {
 				case "c":
-					temp_to_print = fmt.Sprintf("%0.2f", raw_temp)
+					temp_to_print = fmt.Sprintf("%0.2fºC", raw_temp)
 				case "f":
-					temp_to_print = fmt.Sprintf("%0.2f", utils.ConvertCelsiusToFahrenheit(raw_temp))
+					temp_to_print = fmt.Sprintf("%0.2fºF", utils.ConvertCelsiusToFahrenheit(raw_temp))
 				case "k":
-					temp_to_print = fmt.Sprintf("%0.2f", utils.ConvertCelsiusToKelvin(raw_temp))
+					temp_to_print = fmt.Sprintf("%0.2fºK", utils.ConvertCelsiusToKelvin(raw_temp))
 			}
 			for (true) {
 				if (!noLog) {
