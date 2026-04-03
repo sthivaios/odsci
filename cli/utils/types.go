@@ -19,8 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package utils
 
 type Sample struct {
-	Timestamp int64
+	Timestamp string
 	Value float64
+	ValueInFahrenheit float64
+	ValueInKelvin float64
 }
 
 type BoardInfo struct {

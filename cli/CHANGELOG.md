@@ -2,6 +2,25 @@
 
 Note: Changelog started at v1.0.0. See commit history for changes prior to this version.
 
+## [Unreleased]
+
+### Added
+
+- Added the ability to use ISO 8601 instead of UNIX timestmaps in the CSV output of the `capture` command
+- Added the ability to select a unit of measurement in the `read` command with the `--unit` or `-u` flag
+- The `capture` command now stores values in degrees Celsius, Fahrenheit and Kelvin in the CSV in separate columns
+- The `read` command now shows the difference from the last read, next to the value
+
+### Fixed
+
+- Fixed minor bug where the capture command would attempt to turn on the CLED without checking the flag first
+- Fixed major bug where the `read` command wouldn't actually update because it was only reading the temperature once
+
+### Changed
+
+- Minor changes to error handling, like error messages
+- Updated from v1.0.0 of the schollz/progressbar library, to v3
+
 ## [v1.1.1] - 2026-03-31
 
 ### Fixed

@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/schollz/progressbar"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"github.com/sthivaios/odsci/utils"
 	"go.bug.st/serial"
@@ -51,6 +51,7 @@ the captured data.`,
         samples, _ := cmd.Flags().GetInt("samples")
         interval, _ := cmd.Flags().GetInt("interval")
         output, _ := cmd.Flags().GetString("output")
+		iso8601, _ := cmd.Flags().GetBool("iso-8601")
 
 		// exit gracefully on ctrl+c
 		var sigChan = make(chan os.Signal, 1)
@@ -62,12 +63,10 @@ the captured data.`,
 		}
 		port, err := serial.Open(serialPort, mode)
 		if err != nil {
-			var errorString string = color.HiRedString("\r\nThere was an error while trying to connect to the ODSCI probe.\r\nThe serial port you entered may be incorrect.\r\nTo scan for serial ports on your computer, run ") + color.HiMagentaString("'odsci scan'") + color.HiRedString(".\r\n\r\nError details:\r\n\r\n")
+			var errorString string = color.HiRedString("\r\nThere was an error while trying to connect to the ODSCI probe.\r\nThe serial port you entered may be incorrect." + color.HiRedString("\r\n\r\nError details:\r\n\r\n"))
 			print(errorString)
 			log.Fatal(err)
 		}
-
-		port.Write([]byte("SET_CLED_ON\r"))
 
 		// handle ctrl+c
 		go func() {
@@ -93,16 +92,26 @@ the captured data.`,
 
 		// time estimate
 		var totalSeconds float64 = float64(samples-1) * float64(interval) + (float64(samples) * float64(0.85))
-		print(fmt.Sprintf("Capturing %d samples, at a %s interval\r\nEstimated time until completetion: %s\r\nCapture should be completed at around %s\r\n\r\n", samples, utils.TimeString(int64(interval)), utils.TimeString(int64(totalSeconds)), time.Unix((time.Now().Unix() + int64(totalSeconds)), 0).Format("15:04:05")))
+		print(fmt.Sprintf("\r\nCapturing %d samples, at a %s interval\r\nEstimated time until completetion: %s\r\nCapture should be completed at around %s\r\n\r\n", samples, utils.TimeString(int64(interval)), utils.TimeString(int64(totalSeconds)), time.Unix((time.Now().Unix() + int64(totalSeconds)), 0).Format("15:04:05")))
 
 		// new progress bar
 		bar := progressbar.New(samples)
 		for i := range samples {
 			// read and put values in the struct
 			var sample utils.Sample
-			sample.Timestamp = time.Now().Unix()
+
+			// chose timestamp type depending on the iso8601 flag
+			if (!iso8601) {
+				sample.Timestamp = strconv.FormatInt(time.Now().Unix(), 10)
+			} else {
+				sample.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
+			}
+
 			_, value := utils.ReadTemperature(port, scanner);
 			sample.Value = value
+
+			sample.ValueInFahrenheit = utils.ConvertCelsiusToFahrenheit(value)
+			sample.ValueInKelvin = utils.ConvertCelsiusToKelvin(value)
 
 			// append the struct to the samples
 			capturedSamples = append(capturedSamples, sample)
@@ -127,12 +136,14 @@ the captured data.`,
 		defer writer.Flush()
 
 		// header row
-		writer.Write([]string{"timestamp", "temperature"})
+		writer.Write([]string{"timestamp", "temperature_c", "temperature_f", "temperature_k"})
 
 		for _, sample := range capturedSamples {
 			writer.Write([]string{
-				strconv.FormatInt(sample.Timestamp, 10),
+				sample.Timestamp,
 				strconv.FormatFloat(sample.Value, 'f', 2, 64),
+				strconv.FormatFloat(sample.ValueInFahrenheit, 'f', 2, 64),
+				strconv.FormatFloat(sample.ValueInKelvin, 'f', 2, 64),
 			})
 		}
 
@@ -152,4 +163,5 @@ func init() {
 	captureCmd.Flags().IntP("interval", "i", 10, "Interval between samples in seconds")
 	captureCmd.Flags().StringP("output", "o", "", "Output path")
 	captureCmd.MarkFlagRequired("output")
+	captureCmd.Flags().Bool("iso-8601", false, "Uses ISO 8601 timestamps in the CSV instead")
 }
