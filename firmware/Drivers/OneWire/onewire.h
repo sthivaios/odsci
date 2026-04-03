@@ -32,7 +32,7 @@ typedef enum {
 } OneWire_Status;
 
 // function declarations
-void ds18b20_start_conversion(void);
+OneWire_Status ds18b20_start_conversion(void);
 OneWire_Status ds18b20_read_temperature(float *out);
 
 #endif //ODSCI_ONEWIRE_H
