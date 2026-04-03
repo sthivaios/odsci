@@ -6,6 +6,8 @@ Note: Changelog started at v1.1.0. See commit history for changes prior to this 
 
 ### Fixed
 - Fixed a minor bug in the main firmware loop, that could potentially cause a race condition
+- Improved error handling when getting the temperature
+- Improved error handling when the command buffer overflows
 
 ## [v1.1.0] - 2026-03-29
 
