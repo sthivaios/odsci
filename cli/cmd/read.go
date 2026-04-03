@@ -105,7 +105,7 @@ The command accepts other arguments too.`,
 						case "f":
 							temp_to_print = fmt.Sprintf("%+0.2fºF (%+0.2fºF)", utils.ConvertCelsiusToFahrenheit(raw_temp), utils.ConvertCelsiusToFahrenheit(difference))
 						case "k":
-							temp_to_print = fmt.Sprintf("%+0.2fºK (%+0.2fºK)", utils.ConvertCelsiusToKelvin(raw_temp), utils.ConvertCelsiusToFahrenheit(difference))
+							temp_to_print = fmt.Sprintf("%+0.2fºK (%+0.2fºK)", utils.ConvertCelsiusToKelvin(raw_temp), utils.ConvertCelsiusToKelvin(difference))
 					}
 				} else {
 					switch unit {
