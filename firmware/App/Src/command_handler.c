@@ -68,21 +68,21 @@ void handle_cmd() {
 
 void odsci_handle_rx(const uint8_t *IncBuf, uint32_t Len) {
   for (int i = 0; i < Len; i++) {
-    if (bufferIndex >= BUFFER_SIZE) {
-      bufferIndex = 0;
-      char tx_buf[128];
-      ERROR_LED_ON();
-      snprintf(tx_buf, sizeof(tx_buf), "ERROR:BUFFER_OVERFLOW_COMMAND_TOO_LONG\r\n");
-      CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
-    }
     const char byte = (char)IncBuf[i];
-    Buffer[bufferIndex] = byte;
-    if (Buffer[bufferIndex] == '\r') {
+    if (byte == '\r') {
       Buffer[bufferIndex] = '\0';
       handle_cmd();
       bufferIndex = 0;
       continue;
     }
+    if (bufferIndex >= BUFFER_SIZE - 1) {
+      bufferIndex = 0;
+      ERROR_LED_ON();
+      static const char err[] = "ERROR:BUFFER_OVERFLOW_COMMAND_TOO_LONG\r\n";
+      CDC_Transmit_FS((uint8_t *)err, strlen(err));
+      continue;
+    }
+    Buffer[bufferIndex] = byte;
     bufferIndex++;
   }
 };
