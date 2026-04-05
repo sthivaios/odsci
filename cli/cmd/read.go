@@ -24,6 +24,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -88,33 +89,39 @@ The command accepts other arguments too.`,
 
 		// main logic
 		if (watch) {
-			fmt.Print(color.HiBlueString("Reading ODSCI probe on %s, at a %ds interval\r\n\r\n", serialPort, interval))
-			if (noLog) {
-				fmt.Print(color.HiYellowString("You are using the \"--no-log\" flag. If the CLI looks like it has frozen, it hasn't.\r\nThe temperature is just not updating.\r\n\r\n"))
-			}
+			fmt.Print(color.HiBlueString("Reading ODSCI probe on %s,\r\nat a %ds interval, in degrees º%s.\r\n\r\n", serialPort, interval, strings.ToUpper(unit)))
 			var prevTemperature float64;
 			var firstLog bool = true;
 			for (true) {
 				_, raw_temp := utils.ReadTemperature(port, scanner)
 				var temp_to_print string
-				var difference = raw_temp - prevTemperature;
+				var currentTemp float64 = 0;
 				if (!firstLog) {
 					switch unit {
 						case "c":
+							currentTemp = raw_temp;
+							var difference = currentTemp - prevTemperature;
 							temp_to_print = fmt.Sprintf("%+0.2fºC (%+0.2fºC)", raw_temp, difference)
 						case "f":
-							temp_to_print = fmt.Sprintf("%+0.2fºF (%+0.2fºF)", utils.ConvertCelsiusToFahrenheit(raw_temp), utils.ConvertCelsiusToFahrenheit(difference))
+							currentTemp = utils.ConvertCelsiusToFahrenheit(raw_temp)
+							var difference = currentTemp - prevTemperature;
+							temp_to_print = fmt.Sprintf("%+0.2fºF (%+0.2fºF)", currentTemp, difference)
 						case "k":
-							temp_to_print = fmt.Sprintf("%+0.2fºK (%+0.2fºK)", utils.ConvertCelsiusToKelvin(raw_temp), utils.ConvertCelsiusToKelvin(difference))
+							currentTemp = utils.ConvertCelsiusToKelvin(raw_temp)
+							var difference = currentTemp - prevTemperature;
+							temp_to_print = fmt.Sprintf("%+0.2fºK (%+0.2fºK)", currentTemp, difference)
 					}
 				} else {
 					switch unit {
 						case "c":
+							currentTemp = raw_temp;
 							temp_to_print = fmt.Sprintf("%+0.2fºC", raw_temp)
 						case "f":
-							temp_to_print = fmt.Sprintf("%+0.2fºF", utils.ConvertCelsiusToFahrenheit(raw_temp))
+							currentTemp = utils.ConvertCelsiusToFahrenheit(raw_temp)
+							temp_to_print = fmt.Sprintf("%+0.2fºF", currentTemp)
 						case "k":
-							temp_to_print = fmt.Sprintf("%+0.2fºK", utils.ConvertCelsiusToKelvin(raw_temp))
+							currentTemp = utils.ConvertCelsiusToKelvin(raw_temp)
+							temp_to_print = fmt.Sprintf("%+0.2fºK", currentTemp)
 					}
 				}
 				if (!noLog) {
@@ -124,13 +131,30 @@ The command accepts other arguments too.`,
 					timestamp := time.Now().UTC().Format("15:04:05")
 					fmt.Printf("\r[%s]: %-10s",timestamp, temp_to_print)
 				}
-				prevTemperature = raw_temp;
+				switch unit {
+					case "c":
+						prevTemperature = raw_temp;
+					case "f":
+						prevTemperature = utils.ConvertCelsiusToFahrenheit(raw_temp)
+					case "k":
+						prevTemperature = utils.ConvertCelsiusToKelvin(raw_temp)
+				}
 				if (firstLog == true) { firstLog = false }
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
 		} else {
 			fmt.Print(color.HiBlueString("Reading ODSCI probe on %s\r\n\r\n", serialPort))
-			fmt.Println(utils.ReadTemperature(port, scanner));
+			_, raw_temp := utils.ReadTemperature(port, scanner)
+			var temp_to_print string
+			switch unit {
+				case "c":
+					temp_to_print = fmt.Sprintf("%+0.2fºC", raw_temp)
+				case "f":
+					temp_to_print = fmt.Sprintf("%+0.2fºF", utils.ConvertCelsiusToFahrenheit(raw_temp))
+				case "k":
+					temp_to_print = fmt.Sprintf("%+0.2fºK", utils.ConvertCelsiusToKelvin(raw_temp))
+			}
+			fmt.Println(temp_to_print)
 		}
 
 	},
