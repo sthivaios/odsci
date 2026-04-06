@@ -77,7 +77,7 @@ The command accepts other arguments too.`,
 		// handle ctrl+c
 		go func() {
 			<-sigChan
-			color.HiRed("\r\n\r\nCancelled.")
+			color.HiRed("\r\n\r\nCancelled by user via Ctrl+C")
 			os.Exit(0)
 		}()
 
@@ -86,6 +86,12 @@ The command accepts other arguments too.`,
 
 		// clear serial buffer
 		utils.ClearBuffer(port, scanner);
+
+		// get board info, turn on CLED and check for iwdg reset
+		boardInfo, _ := utils.BoardCheck(port, scanner);
+		if (boardInfo.LastResetWasIWDG) {
+			print(utils.AdvisoryStringIWDG(boardInfo))
+		}
 
 		// main logic
 		if (watch) {

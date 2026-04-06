@@ -37,7 +37,7 @@ func BoardCheck(port serial.Port, scanner *bufio.Scanner) (BoardInfo, error) {
 	}
 	var boardInfo BoardInfo;
 
-		version, cledStatus, found1 := strings.Cut(line, ",")
+		version, rest, found1 := strings.Cut(line, ",")
 		if (!found1) {
 			return BoardInfo{}, errors.New("Error parsing response")
 		}
@@ -47,8 +47,18 @@ func BoardCheck(port serial.Port, scanner *bufio.Scanner) (BoardInfo, error) {
 			return BoardInfo{}, errors.New("Error parsing response")
 		}
 
-		_, cledStatusFlag, found3 := strings.Cut(cledStatus, "=")
+		cledStatus, iwdgReset, found3 := strings.Cut(rest, ",")
 		if (!found3) {
+			return BoardInfo{}, errors.New("Error parsing response")
+		}
+
+		_, cledStatusFlag, found4 := strings.Cut(cledStatus, "=")
+		if (!found4) {
+			return BoardInfo{}, errors.New("Error parsing response")
+		}
+		
+		_, iwdgResetFlag, found5 := strings.Cut(iwdgReset, "=")
+		if (!found5) {
 			return BoardInfo{}, errors.New("Error parsing response")
 		}
 
@@ -57,6 +67,12 @@ func BoardCheck(port serial.Port, scanner *bufio.Scanner) (BoardInfo, error) {
 			boardInfo.CledIsUsedForErrors = true
 		} else {
 			boardInfo.CledIsUsedForErrors = false
+		}
+
+		if (iwdgResetFlag == "1") {
+			boardInfo.LastResetWasIWDG = true
+		} else {
+			boardInfo.LastResetWasIWDG = false
 		}
 
 		// placeholder for now
