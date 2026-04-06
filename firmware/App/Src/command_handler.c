@@ -26,6 +26,11 @@
 
 static char Buffer[BUFFER_SIZE];
 uint32_t bufferIndex = 0;
+bool iwdg_reset = false;
+
+void set_last_reset_due_to_iwdg(const bool iwdg_status) {
+  iwdg_reset = iwdg_status;
+}
 
 void handle_cmd() {
   char tx_buf[256];
@@ -119,7 +124,7 @@ void take_action(const TakeAction_Params_T params) {
     ERROR_LED_OFF();
   } else if (params.sendInfo == true) {
     char tx_buf[128];
-    snprintf(tx_buf, sizeof(tx_buf), "FIRMWARE_VERSION=%s,CLED_IS_FOR_ERRORS_INSTEAD=%d\r\n", FIRMWARE_VERSION_STR, CLED_IS_FOR_ERRORS_INSTEAD);
+    snprintf(tx_buf, sizeof(tx_buf), "FIRMWARE_VERSION=%s,CLED_IS_FOR_ERRORS_INSTEAD=%d,LAST_RESET_DUE_TO_IWDG=%d\r\n", FIRMWARE_VERSION_STR, CLED_IS_FOR_ERRORS_INSTEAD, iwdg_reset);
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
   }
 }

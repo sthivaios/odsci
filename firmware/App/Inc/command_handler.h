@@ -33,5 +33,6 @@ typedef struct {
 // function declarations
 void odsci_handle_rx(const uint8_t *IncBuf, uint32_t Len);
 void take_action(const TakeAction_Params_T params);
+void set_last_reset_due_to_iwdg(const bool iwdg_status);
 
 #endif //ODSCI_COMMAND_HANDLER_H
