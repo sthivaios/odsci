@@ -34,5 +34,6 @@ typedef struct {
 void odsci_handle_rx(const uint8_t *IncBuf, uint32_t Len);
 void take_action(const TakeAction_Params_T params);
 void set_last_reset_due_to_iwdg(const bool iwdg_status);
+void get_serial_number(char *out, size_t len);
 
 #endif //ODSCI_COMMAND_HANDLER_H

@@ -32,6 +32,16 @@ void set_last_reset_due_to_iwdg(const bool iwdg_status) {
   iwdg_reset = iwdg_status;
 }
 
+void get_serial_number(char *out, size_t len) {
+  uint32_t uid0 = *(uint32_t *)(UID_BASE);
+  uint32_t uid1 = *(uint32_t *)(UID_BASE + 4);
+  uint32_t uid2 = *(uint32_t *)(UID_BASE + 8);
+
+  // mix all three words so the result reflects the full UID
+  uint32_t mixed = uid0 ^ uid1 ^ uid2;
+  snprintf(out, len, "%08lX", mixed);
+}
+
 void handle_cmd() {
   char tx_buf[256];
   ERROR_LED_OFF();
@@ -123,8 +133,10 @@ void take_action(const TakeAction_Params_T params) {
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
     ERROR_LED_OFF();
   } else if (params.sendInfo == true) {
-    char tx_buf[128];
-    snprintf(tx_buf, sizeof(tx_buf), "FIRMWARE_VERSION=%s,CLED_IS_FOR_ERRORS_INSTEAD=%d,LAST_RESET_DUE_TO_IWDG=%d\r\n", FIRMWARE_VERSION_STR, CLED_IS_FOR_ERRORS_INSTEAD, iwdg_reset);
+    char tx_buf[129];
+    char serial[24];
+    get_serial_number(serial, 24);
+    snprintf(tx_buf, sizeof(tx_buf), "FIRMWARE_VERSION=%s,CLED_IS_FOR_ERRORS_INSTEAD=%d,LAST_RESET_DUE_TO_IWDG=%d,SERIAL_NUMBER=%s\r\n", FIRMWARE_VERSION_STR, CLED_IS_FOR_ERRORS_INSTEAD, iwdg_reset, serial);
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
   }
 }
