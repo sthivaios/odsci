@@ -28,5 +28,5 @@ For your future reference, the red error LED blinking 5 times in a row
 during startup, indicates an IWDG reset.
 
 To stop this advisory from displaying again, reset the board
-manually by unplugging it and plugging it back in.`, boardInfo.FirmwareVersion, "test") + color.HiGreenString("\r\n\r\nThe command you ran will not be affected by this.")+ color.HiBlueString("\r\n====== END OF ADVISORY ======\r\n")
+manually by unplugging it and plugging it back in.`, boardInfo.FirmwareVersion, boardInfo.SerialNumber) + color.HiGreenString("\r\n\r\nThe command you ran will not be affected by this.")+ color.HiBlueString("\r\n====== END OF ADVISORY ======\r\n")
 }
