@@ -31,7 +31,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "../../App/Inc/led_control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,6 +60,7 @@ UART_HandleTypeDef huart2;
 
 TakeAction_Params_T TakeAction_ClearStruct;
 volatile TakeAction_Params_T TakeAction_Params;
+volatile bool LastResetDueToIWDG;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,7 +79,6 @@ static void MX_IWDG_Init(void);
 void change_takeAction_params(const TakeAction_Params_T params) {
   TakeAction_Params = params;
 }
-
 /* USER CODE END 0 */
 
 /**
@@ -116,6 +116,21 @@ int main(void)
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
 
+  // check reset cause before anything else
+  set_last_reset_due_to_iwdg(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST));
+  if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) {
+    int i = 0;
+    while (i < 6) {
+      HAL_GPIO_WritePin(CLED_OR_ERRORLED_MX_GPIO_Port, CLED_OR_ERRORLED_MX_Pin, true);
+      HAL_Delay(350);
+      HAL_GPIO_WritePin(CLED_OR_ERRORLED_MX_GPIO_Port, CLED_OR_ERRORLED_MX_Pin, false);
+      HAL_Delay(250);
+      HAL_IWDG_Refresh(&hiwdg);
+      i = i + 1;
+    }
+  }
+  __HAL_RCC_CLEAR_RESET_FLAGS(); // clear them for next time
+
   // start the timer
   HAL_TIM_Base_Start(&htim2);
   /* USER CODE END 2 */
@@ -135,6 +150,8 @@ int main(void)
     // now actually take action
     take_action(local_params);
 
+
+    HAL_IWDG_Refresh(&hiwdg);
     HAL_Delay(1);
   }
     /* USER CODE END WHILE */
@@ -316,7 +333,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|GPIO_PIN_6|GPIO_PIN_7, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|ACTIVITY_LED_MX_Pin|CLED_OR_ERRORLED_MX_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, GPIO_PIN_RESET);
@@ -327,8 +344,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin PA6 PA7 */
-  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_6|GPIO_PIN_7;
+  /*Configure GPIO pins : LD2_Pin ACTIVITY_LED_MX_Pin CLED_OR_ERRORLED_MX_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|ACTIVITY_LED_MX_Pin|CLED_OR_ERRORLED_MX_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
