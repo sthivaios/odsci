@@ -29,4 +29,5 @@ type BoardInfo struct {
 	CledIsUsedForErrors bool
 	FirmwareVersion string
 	LastResetWasIWDG bool
+	SerialNumber string
 }

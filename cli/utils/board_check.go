@@ -35,46 +35,31 @@ func BoardCheck(port serial.Port, scanner *bufio.Scanner) (BoardInfo, error) {
 		var errorString string = fmt.Sprintf("ODSCI error: %s", line);
 		return BoardInfo{}, errors.New(errorString)
 	}
-	var boardInfo BoardInfo;
+	parts := strings.Split(line, ",")
 
-		version, rest, found1 := strings.Cut(line, ",")
-		if (!found1) {
-			return BoardInfo{}, errors.New("Error parsing response")
+	var boardInfo BoardInfo
+
+	for _, part := range parts {
+		key, value, found := strings.Cut(part, "=")
+		if !found {
+			return BoardInfo{}, errors.New("error parsing response")
 		}
 
-		_, versionString, found2 := strings.Cut(version, "=")
-		if (!found2) {
-			return BoardInfo{}, errors.New("Error parsing response")
-		}
+		switch key {
+			case "FIRMWARE_VERSION":
+				boardInfo.FirmwareVersion = value
 
-		cledStatus, iwdgReset, found3 := strings.Cut(rest, ",")
-		if (!found3) {
-			return BoardInfo{}, errors.New("Error parsing response")
-		}
+			case "CLED_IS_FOR_ERRORS_INSTEAD":
+				boardInfo.CledIsUsedForErrors = (value == "1")
 
-		_, cledStatusFlag, found4 := strings.Cut(cledStatus, "=")
-		if (!found4) {
-			return BoardInfo{}, errors.New("Error parsing response")
-		}
-		
-		_, iwdgResetFlag, found5 := strings.Cut(iwdgReset, "=")
-		if (!found5) {
-			return BoardInfo{}, errors.New("Error parsing response")
-		}
+			case "LAST_RESET_DUE_TO_IWDG":
+				boardInfo.LastResetWasIWDG = (value == "1")
 
-		boardInfo.FirmwareVersion = versionString
-		if (cledStatusFlag == "1") {
-			boardInfo.CledIsUsedForErrors = true
-		} else {
-			boardInfo.CledIsUsedForErrors = false
+			case "SERIAL_NUMBER":
+				boardInfo.SerialNumber = value // add this field to struct
 		}
+	}
 
-		if (iwdgResetFlag == "1") {
-			boardInfo.LastResetWasIWDG = true
-		} else {
-			boardInfo.LastResetWasIWDG = false
-		}
-
-		// placeholder for now
-		return boardInfo, nil
+	// placeholder for now
+	return boardInfo, nil
 }
