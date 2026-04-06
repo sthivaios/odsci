@@ -4,6 +4,14 @@ Note: Changelog started at v1.1.0. See commit history for changes prior to this 
 
 ## [Unreleased]
 
+### Added
+- Configured the IWDG
+
+### Changed
+- The GET_INFO command now also returns the serial number and whether the last reset reason was an IWDG timeout
+- The serial number of the device as well as the USB descriptor serial is derived from a new function in command_handler.c
+- Updated the USB device descriptors (product string, manufacturer, etc.)
+
 ### Fixed
 - Fixed a minor bug in the main firmware loop, that could potentially cause a race condition
 - Improved error handling when getting the temperature
