@@ -10,6 +10,7 @@ Note: Changelog started at v1.0.0. See commit history for changes prior to this 
 - Added the ability to select a unit of measurement in the `read` command with the `--unit` or `-u` flag
 - The `capture` command now stores values in degrees Celsius, Fahrenheit and Kelvin in the CSV in separate columns
 - The `read` command now shows the difference from the last read, next to the value
+- All commands that communicate with the board, now print an advisory if the last reset reason was an IWDG timeout
 
 ### Fixed
 
