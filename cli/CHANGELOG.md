@@ -21,6 +21,7 @@ Note: Changelog started at v1.0.0. See commit history for changes prior to this 
 
 - Minor changes to error handling, like error messages
 - Updated from v1.0.0 of the schollz/progressbar library, to v3
+- Updated the way that the GET_INFO command result is decoded
 
 ## [v1.1.1] - 2026-03-31
 
