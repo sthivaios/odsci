@@ -35,30 +35,23 @@ func BoardCheck(port serial.Port, scanner *bufio.Scanner) (BoardInfo, error) {
 		var errorString string = fmt.Sprintf("ODSCI error: %s", line);
 		return BoardInfo{}, errors.New(errorString)
 	}
-	parts := strings.Split(line, ",")
 
 	var boardInfo BoardInfo
 
-	for _, part := range parts {
+	kv := make(map[string]string)
+
+	for _, part := range strings.Split(line, ",") {
 		key, value, found := strings.Cut(part, "=")
 		if !found {
 			return BoardInfo{}, errors.New("error parsing response")
 		}
-
-		switch key {
-			case "FIRMWARE_VERSION":
-				boardInfo.FirmwareVersion = value
-
-			case "CLED_IS_FOR_ERRORS_INSTEAD":
-				boardInfo.CledIsUsedForErrors = (value == "1")
-
-			case "LAST_RESET_DUE_TO_IWDG":
-				boardInfo.LastResetWasIWDG = (value == "1")
-
-			case "SERIAL_NUMBER":
-				boardInfo.SerialNumber = value // add this field to struct
-		}
+		kv[key] = value
 	}
+
+	boardInfo.FirmwareVersion = kv["FIRMWARE_VERSION"]
+	boardInfo.CledIsUsedForErrors = kv["CLED_IS_FOR_ERRORS_INSTEAD"] == "1"
+	boardInfo.LastResetWasIWDG = kv["LAST_RESET_DUE_TO_IWDG"] == "1"
+	boardInfo.SerialNumber = kv["SERIAL_NUMBER"]
 
 	// placeholder for now
 	return boardInfo, nil
