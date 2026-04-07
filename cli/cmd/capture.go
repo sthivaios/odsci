@@ -144,7 +144,6 @@ the captured data.`,
 			// advance the progress bar
 			bar.Add(1)
 			
-			// print(fmt.Sprintf("Capturing samples: %.0f%% [%d/%d]\r\n", (float64(i+1)/float64(samples))*100, i+1, samples))
 			if (i+1 < samples) {
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
