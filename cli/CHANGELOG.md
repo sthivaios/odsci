@@ -2,7 +2,7 @@
 
 Note: Changelog started at v1.0.0. See commit history for changes prior to this version.
 
-## [Unreleased]
+## [v1.2.0] - 2026-04-07
 
 ### Added
 
