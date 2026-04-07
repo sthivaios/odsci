@@ -98,8 +98,9 @@ The command accepts other arguments too.`,
 			fmt.Print(color.HiBlueString("Reading ODSCI probe on %s,\r\nat a %ds interval, in degrees º%s.\r\n\r\n", serialPort, interval, strings.ToUpper(unit)))
 			var prevTemperature float64;
 			var firstLog bool = true;
+			var crcAdvisoryDisplayed bool = false;
 			for (true) {
-				_, raw_temp := utils.ReadTemperature(port, scanner)
+				_, raw_temp, readError := utils.ReadTemperature(port, scanner)
 				var temp_to_print string
 				var currentTemp float64 = 0;
 				if (!firstLog) {
@@ -130,12 +131,31 @@ The command accepts other arguments too.`,
 							temp_to_print = fmt.Sprintf("%+0.2fºK", currentTemp)
 					}
 				}
+				var errorString string;
+				timestamp := time.Now().UTC().Format("15:04:05")
+				if (readError != nil) {
+					if (readError.Error() == "CRC") {
+						errorString = color.HiRedString("A CRC validation error was reported by the device. Perhaps your sensor line is noisy?")
+					} else if (readError.Error() == "PARSE") {
+						errorString = color.HiRedString("The temperature value sent by the device, could not be parsed.")
+					}
+					if (!crcAdvisoryDisplayed) {
+						fmt.Print(utils.AdvisoryStringCRC(boardInfo));
+						crcAdvisoryDisplayed = true;
+					}
+				}
 				if (!noLog) {
-					timestamp := time.Now().UTC().Format("15:04:05")
+					if (readError != nil) {
+						fmt.Printf("[%s]: %s\r\n",timestamp, errorString)
+						continue;
+					}
 					fmt.Printf("[%s]: %s\r\n",timestamp, temp_to_print)
 				} else {
-					timestamp := time.Now().UTC().Format("15:04:05")
-					fmt.Printf("\r[%s]: %-10s",timestamp, temp_to_print)
+					if (readError != nil) {
+						fmt.Printf("\r[%s]: %-86s",timestamp, errorString)
+						continue;
+					}
+					fmt.Printf("\r[%s]: %-86s",timestamp, temp_to_print)
 				}
 				switch unit {
 					case "c":
@@ -150,7 +170,7 @@ The command accepts other arguments too.`,
 			}
 		} else {
 			fmt.Print(color.HiBlueString("Reading ODSCI probe on %s\r\n\r\n", serialPort))
-			_, raw_temp := utils.ReadTemperature(port, scanner)
+			_, raw_temp, readError := utils.ReadTemperature(port, scanner)
 			var temp_to_print string
 			switch unit {
 				case "c":
@@ -159,6 +179,20 @@ The command accepts other arguments too.`,
 					temp_to_print = fmt.Sprintf("%+0.2fºF", utils.ConvertCelsiusToFahrenheit(raw_temp))
 				case "k":
 					temp_to_print = fmt.Sprintf("%+0.2fºK", utils.ConvertCelsiusToKelvin(raw_temp))
+			}
+			var errorString string;
+			timestamp := time.Now().UTC().Format("15:04:05")
+			if (readError != nil) {
+				if (readError.Error() == "CRC") {
+					errorString = color.HiRedString("A CRC validation error was reported by the device. Perhaps your sensor line is noisy?")
+				} else if (readError.Error() == "PARSE") {
+					errorString = color.HiRedString("The temperature value sent by the device, could not be parsed.")
+				}
+				fmt.Print(utils.AdvisoryStringCRC(boardInfo));
+			}
+			if (readError != nil) {
+				fmt.Printf("[%s]: %s\r\n",timestamp, errorString)
+				return;
 			}
 			fmt.Println(temp_to_print)
 		}

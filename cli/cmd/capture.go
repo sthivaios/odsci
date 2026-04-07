@@ -99,6 +99,9 @@ the captured data.`,
 
 		// new progress bar
 		bar := progressbar.New(samples)
+
+		var crcAdvisoryDisplayed bool = false;
+		
 		for i := range samples {
 			// read and put values in the struct
 			var sample utils.Sample
@@ -110,7 +113,26 @@ the captured data.`,
 				sample.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 			}
 
-			_, value := utils.ReadTemperature(port, scanner);
+			_, value, readError := utils.ReadTemperature(port, scanner);
+
+			var errorString string;
+			timestamp := time.Now().UTC().Format("15:04:05")
+			if (readError != nil) {
+				if (readError.Error() == "CRC") {
+					errorString = color.HiRedString("CRC error, perhaps your sensor line is noisy?")
+				} else if (readError.Error() == "PARSE") {
+					errorString = color.HiRedString("Error parsing the temperature...")
+				}
+				if (!crcAdvisoryDisplayed) {
+					fmt.Print(utils.AdvisoryStringCRC(boardInfo));
+					crcAdvisoryDisplayed = true;
+				}
+			}
+
+			if (readError != nil) {
+				bar.Describe(fmt.Sprintf("[%s]: %s",timestamp, errorString))
+			}
+
 			sample.Value = value
 
 			sample.ValueInFahrenheit = utils.ConvertCelsiusToFahrenheit(value)

@@ -30,3 +30,27 @@ during startup indicates an IWDG reset.
 To stop this advisory from displaying again, reset the board
 manually by unplugging it and plugging it back in.`, boardInfo.FirmwareVersion, boardInfo.SerialNumber) + color.HiGreenString("\r\n\r\nThe command you ran will not be affected by this.")+ color.HiBlueString("\r\n====== END OF ADVISORY ======\r\n\r\n")
 }
+
+func AdvisoryStringCRC(boardInfo BoardInfo) string {
+	if (boardInfo.SerialNumber == "") {
+		boardInfo.SerialNumber = "No serial number returned by the device.\nPerhaps you are running firmware older than v1.2.0?"
+	}
+	return color.HiBlueString("\r\n========= ADVISORY ==========\r\n") + color.HiYellowString(`[SEVERITY: WARNING] CRC8 DATA VALIDATION FAILED
+
+Uh oh, something isn't right... :(
+
+The board has reported a failed sensor CRC data validation. The ODSCI firmware running
+onboard the microcontroller on your ODSCI probe, uses the CRC8 algorithm to ensure that
+the data that it read from the sensor was correct. If that validation fails, the device
+throws this error, to avoid returning potentially wrong or corrupted temperature readings.
+
+This usually doesn't happen. It can potentially be caused by electromagnetic interference,
+basically noise, on the sensor data line. If your sensor is connected to the ODSCI device
+with a very long cable, that could potentially be affecting it.
+
+Your board's details:
+- Firmware version: %s
+- Serial Number: %s
+
+This advisory only displays once, when a CRC error is detected.`, boardInfo.FirmwareVersion, boardInfo.SerialNumber) + color.HiGreenString("\r\n\r\nThe CLI will still attempt to poll the sensor again. Don't cancel this command yet.\r\nThis type of error is usually intermittent.")+ color.HiBlueString("\r\n====== END OF ADVISORY ======\r\n\r\n")
+}
