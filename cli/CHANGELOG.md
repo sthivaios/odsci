@@ -11,6 +11,7 @@ Note: Changelog started at v1.0.0. See commit history for changes prior to this 
 - The `capture` command now stores values in degrees Celsius, Fahrenheit and Kelvin in the CSV in separate columns
 - The `read` command now shows the difference from the last read, next to the value
 - All commands that communicate with the board, now print an advisory if the last reset reason was an IWDG timeout
+- All commands that communicate with the board, now print an advisory if the sensor CRC8 data validation fails
 
 ### Fixed
 
@@ -19,7 +20,7 @@ Note: Changelog started at v1.0.0. See commit history for changes prior to this 
 
 ### Changed
 
-- Minor changes to error handling, like error messages
+- Major improvements to error handling
 - Updated from v1.0.0 of the schollz/progressbar library, to v3
 - Updated the way that the GET_INFO command result is decoded
 
