@@ -31,7 +31,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "../../App/Inc/led_control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,6 +50,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+IWDG_HandleTypeDef hiwdg;
+
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart2;
@@ -58,6 +60,7 @@ UART_HandleTypeDef huart2;
 
 TakeAction_Params_T TakeAction_ClearStruct;
 volatile TakeAction_Params_T TakeAction_Params;
+volatile bool LastResetDueToIWDG;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,6 +68,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_IWDG_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -75,7 +79,6 @@ static void MX_USART2_UART_Init(void);
 void change_takeAction_params(const TakeAction_Params_T params) {
   TakeAction_Params = params;
 }
-
 /* USER CODE END 0 */
 
 /**
@@ -110,7 +113,23 @@ int main(void)
   MX_TIM2_Init();
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
+
+  // check reset cause before anything else
+  set_last_reset_due_to_iwdg(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST));
+  if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) {
+    int i = 0;
+    while (i < 6) {
+      HAL_GPIO_WritePin(CLED_OR_ERRORLED_MX_GPIO_Port, CLED_OR_ERRORLED_MX_Pin, true);
+      HAL_Delay(350);
+      HAL_GPIO_WritePin(CLED_OR_ERRORLED_MX_GPIO_Port, CLED_OR_ERRORLED_MX_Pin, false);
+      HAL_Delay(250);
+      HAL_IWDG_Refresh(&hiwdg);
+      i = i + 1;
+    }
+  }
+  __HAL_RCC_CLEAR_RESET_FLAGS(); // clear them for next time
 
   // start the timer
   HAL_TIM_Base_Start(&htim2);
@@ -131,11 +150,13 @@ int main(void)
     // now actually take action
     take_action(local_params);
 
+
+    HAL_IWDG_Refresh(&hiwdg);
     HAL_Delay(1);
   }
-  /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-  /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
 
   /* USER CODE END 3 */
 }
@@ -157,8 +178,9 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
@@ -184,6 +206,34 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief IWDG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IWDG_Init(void)
+{
+
+  /* USER CODE BEGIN IWDG_Init 0 */
+
+  /* USER CODE END IWDG_Init 0 */
+
+  /* USER CODE BEGIN IWDG_Init 1 */
+
+  /* USER CODE END IWDG_Init 1 */
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
+  hiwdg.Init.Reload = 2000;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IWDG_Init 2 */
+
+  /* USER CODE END IWDG_Init 2 */
+
 }
 
 /**
@@ -283,7 +333,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|GPIO_PIN_6|GPIO_PIN_7, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|ACTIVITY_LED_MX_Pin|CLED_OR_ERRORLED_MX_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, GPIO_PIN_RESET);
@@ -294,8 +344,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin PA6 PA7 */
-  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_6|GPIO_PIN_7;
+  /*Configure GPIO pins : LD2_Pin ACTIVITY_LED_MX_Pin CLED_OR_ERRORLED_MX_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|ACTIVITY_LED_MX_Pin|CLED_OR_ERRORLED_MX_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

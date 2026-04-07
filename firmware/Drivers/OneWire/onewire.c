@@ -176,10 +176,10 @@ static uint8_t onewire_read_byte(void) {
 /* ----------------------------- */
 
 // Begins the conversion
-void ds18b20_start_conversion(void) {
+OneWire_Status ds18b20_start_conversion(void) {
   // resets the bus, and returns if it gets a 0 from the reset function which would mean no sensor is present
   if (!onewire_reset()) {
-    return;
+    return OneWire_Error;
   }
 
   // 0xCC skips the ROM address. since we only have one sensor on the bus, we can use this, in order
@@ -193,7 +193,7 @@ void ds18b20_start_conversion(void) {
 
   // Wait 750ms for the 12-bit resolution conversion to complete
   delay_us(750000);
-  return;
+  return OneWire_OK;
 }
 
 // Reads the temperature value after the conversion is done and returns it as a float
