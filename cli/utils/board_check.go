@@ -35,30 +35,24 @@ func BoardCheck(port serial.Port, scanner *bufio.Scanner) (BoardInfo, error) {
 		var errorString string = fmt.Sprintf("ODSCI error: %s", line);
 		return BoardInfo{}, errors.New(errorString)
 	}
-	var boardInfo BoardInfo;
 
-		version, cledStatus, found1 := strings.Cut(line, ",")
-		if (!found1) {
-			return BoardInfo{}, errors.New("Error parsing response")
+	var boardInfo BoardInfo
+
+	kv := make(map[string]string)
+
+	for _, part := range strings.Split(line, ",") {
+		key, value, found := strings.Cut(part, "=")
+		if !found {
+			return BoardInfo{}, errors.New("error parsing response")
 		}
+		kv[key] = value
+	}
 
-		_, versionString, found2 := strings.Cut(version, "=")
-		if (!found2) {
-			return BoardInfo{}, errors.New("Error parsing response")
-		}
+	boardInfo.FirmwareVersion = kv["FIRMWARE_VERSION"]
+	boardInfo.CledIsUsedForErrors = kv["CLED_IS_FOR_ERRORS_INSTEAD"] == "1"
+	boardInfo.LastResetWasIWDG = kv["LAST_RESET_DUE_TO_IWDG"] == "1"
+	boardInfo.SerialNumber = kv["SERIAL_NUMBER"]
 
-		_, cledStatusFlag, found3 := strings.Cut(cledStatus, "=")
-		if (!found3) {
-			return BoardInfo{}, errors.New("Error parsing response")
-		}
-
-		boardInfo.FirmwareVersion = versionString
-		if (cledStatusFlag == "1") {
-			boardInfo.CledIsUsedForErrors = true
-		} else {
-			boardInfo.CledIsUsedForErrors = false
-		}
-
-		// placeholder for now
-		return boardInfo, nil
+	// placeholder for now
+	return boardInfo, nil
 }
