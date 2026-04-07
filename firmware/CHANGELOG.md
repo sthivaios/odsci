@@ -2,10 +2,10 @@
  
 Note: Changelog started at v1.1.0. See commit history for changes prior to this version.
 
-## [Unreleased]
+## [v1.2.0] - 2026-04-07
 
 ### Added
-- Configured the IWDG
+- Configured the IWDG to timeout after 2000ms
 
 ### Changed
 - The GET_INFO command now also returns the serial number and whether the last reset reason was an IWDG timeout
