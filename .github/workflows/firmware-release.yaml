@@ -27,12 +27,12 @@ jobs:
       - name: Rename binaries
         run: |
           VERSION=${GITHUB_REF_NAME#firmware/}
-          mv build/Release/odsci.bin build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.bin
-          mv build/Release/odsci.hex build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.hex
+          mv build/Release/odsci.bin build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m0-stm32f042k6.bin
+          mv build/Release/odsci.hex build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m0-stm32f042k6.hex
       - name: Generate checksums
         run: |
           cd build/Release
-          sha256sum odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.bin odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.hex > checksums.txt
+          sha256sum odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m0-stm32f042k6.bin odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m0-stm32f042k6.hex > checksums.txt
       - name: Extract changelog
         run: |
           VERSION=${{ steps.version.outputs.version }}
@@ -54,7 +54,7 @@ jobs:
           3. After its plugged in, and the power LED turns on, release the DFU button
           4. Flash using dfu-util:
           ```
-          dfu-util -a 0 -s 0x08000000:leave -D odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.bin
+          dfu-util -a 0 -s 0x08000000:leave -D odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m0-stm32f042k6.bin
           ```
           5. Optional: If it does not automatically reset and boot normally, you may have to unplug it and plug it back in (without pressing the DFU button!) 
 
@@ -66,6 +66,6 @@ jobs:
           name: Firmware ${{ steps.version.outputs.version }}
           body_path: firmware/release_notes.md
           files: |
-            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.bin
-            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m4-stm32f446re.hex
+            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m0-stm32f042k6.bin
+            firmware/build/Release/odsci-firmware-${{ steps.version.outputs.version }}-arm-cortex-m0-stm32f042k6.hex
             firmware/build/Release/checksums.txt

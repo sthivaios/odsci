@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
+#include "stm32f0xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -57,26 +57,12 @@ void change_takeAction_params(TakeAction_Params_T params);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define B1_Pin GPIO_PIN_13
-#define B1_GPIO_Port GPIOC
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
-#define LD2_Pin GPIO_PIN_5
-#define LD2_GPIO_Port GPIOA
-#define ACTIVITY_LED_MX_Pin GPIO_PIN_6
-#define ACTIVITY_LED_MX_GPIO_Port GPIOA
-#define CLED_OR_ERRORLED_MX_Pin GPIO_PIN_7
-#define CLED_OR_ERRORLED_MX_GPIO_Port GPIOA
-#define TMS_Pin GPIO_PIN_13
-#define TMS_GPIO_Port GPIOA
-#define TCK_Pin GPIO_PIN_14
-#define TCK_GPIO_Port GPIOA
-#define SWO_Pin GPIO_PIN_3
-#define SWO_GPIO_Port GPIOB
-#define DS18B20_Pin GPIO_PIN_5
-#define DS18B20_GPIO_Port GPIOB
+#define ACTIVITY_LED_Pin GPIO_PIN_6
+#define ACTIVITY_LED_GPIO_Port GPIOA
+#define CLED_OR_ERROR_LED_Pin GPIO_PIN_7
+#define CLED_OR_ERROR_LED_GPIO_Port GPIOA
+#define ONEWIRE_BUS_Pin GPIO_PIN_5
+#define ONEWIRE_BUS_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 extern TIM_HandleTypeDef htim2;
