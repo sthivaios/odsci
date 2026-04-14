@@ -2,6 +2,11 @@
  
 Note: Changelog started at v1.1.0. See commit history for changes prior to this version.
 
+## [v2.0.0] - 2026-04-14
+
+### Beraking Changes
+- Ported the firmware from the ARM® Cortex-M4 platform to the ARM® Cortex-M0 platform, for the STM32F042K6T6 MCU present on V1 of the ODSCI hardware
+
 ## [v1.2.0] - 2026-04-07
 
 ### Added
