@@ -50,6 +50,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+IWDG_HandleTypeDef hiwdg;
+
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
@@ -63,6 +65,7 @@ volatile bool LastResetDueToIWDG;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_IWDG_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -106,6 +109,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   MX_TIM2_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
 
   // check reset cause before anything else
@@ -113,9 +117,9 @@ int main(void)
   if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) {
     int i = 0;
     while (i < 6) {
-      HAL_GPIO_WritePin(CLED_OR_ERRORLED_MX_GPIO_Port, CLED_OR_ERRORLED_MX_Pin, true);
+      HAL_GPIO_WritePin(CLED_OR_ERROR_LED_GPIO_Port, CLED_OR_ERROR_LED_Pin, true);
       HAL_Delay(350);
-      HAL_GPIO_WritePin(CLED_OR_ERRORLED_MX_GPIO_Port, CLED_OR_ERRORLED_MX_Pin, false);
+      HAL_GPIO_WritePin(CLED_OR_ERROR_LED_GPIO_Port, CLED_OR_ERROR_LED_Pin, false);
       HAL_Delay(250);
       HAL_IWDG_Refresh(&hiwdg);
       i = i + 1;
@@ -166,8 +170,9 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -193,6 +198,35 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief IWDG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IWDG_Init(void)
+{
+
+  /* USER CODE BEGIN IWDG_Init 0 */
+
+  /* USER CODE END IWDG_Init 0 */
+
+  /* USER CODE BEGIN IWDG_Init 1 */
+
+  /* USER CODE END IWDG_Init 1 */
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
+  hiwdg.Init.Window = 4095;
+  hiwdg.Init.Reload = 4095;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IWDG_Init 2 */
+
+  /* USER CODE END IWDG_Init 2 */
+
 }
 
 /**

@@ -103,6 +103,7 @@ void odsci_handle_rx(const uint8_t *IncBuf, uint32_t Len) {
 };
 
 void take_action(const TakeAction_Params_T params) {
+  static char tx_buf[192];
   if (params.sendTemperature == true) {
     OneWire_Status status;
 
@@ -115,8 +116,6 @@ void take_action(const TakeAction_Params_T params) {
       status = ds18b20_read_temperature(&temperature);
       led_control(ACTIVITY_LED, false);
     }
-
-    char tx_buf[128];
     if (status == OneWire_Error) {
       ERROR_LED_ON();
       snprintf(tx_buf, sizeof(tx_buf), "ERROR:SENSOR_ERROR\r\n");
@@ -129,11 +128,11 @@ void take_action(const TakeAction_Params_T params) {
       CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
       return;
     }
-    snprintf(tx_buf, sizeof(tx_buf), "%f\r\n", temperature);
+    int temp_int = (int)(temperature * 100); // 2 decimal places
+    snprintf(tx_buf, sizeof(tx_buf), "%d.%02d\r\n", temp_int / 100, temp_int % 100);
     CDC_Transmit_FS((uint8_t *)tx_buf, strlen(tx_buf));
     ERROR_LED_OFF();
   } else if (params.sendInfo == true) {
-    char tx_buf[129];
     char serial[24];
     get_serial_number(serial, 24);
     snprintf(tx_buf, sizeof(tx_buf), "FIRMWARE_VERSION=%s,CLED_IS_FOR_ERRORS_INSTEAD=%d,LAST_RESET_DUE_TO_IWDG=%d,SERIAL_NUMBER=%s\r\n", FIRMWARE_VERSION_STR, CLED_IS_FOR_ERRORS_INSTEAD, iwdg_reset, serial);

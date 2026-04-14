@@ -286,10 +286,14 @@ uint8_t * USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
    * ID */
   Get_SerialNum();
   /* USER CODE BEGIN USBD_FS_SerialStrDescriptor */
-
+  char serial[9];
+  get_serial_number(serial, sizeof(serial));
+  USBD_GetString((uint8_t *)serial, USBD_StrDesc, length);
+  return USBD_StrDesc;
   /* USER CODE END USBD_FS_SerialStrDescriptor */
   return (uint8_t *) USBD_StringSerial;
 }
+
 
 /**
   * @brief  Return the configuration string descriptor
