@@ -2,7 +2,7 @@
 /**
   ******************************************************************************
   * @file           : App/usbd_desc.c
-  * @version        : v1.0_Cube
+  * @version        : v2.0_Cube
   * @brief          : This file implements the USB device descriptors.
   ******************************************************************************
   * @attention
@@ -286,10 +286,7 @@ uint8_t * USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
    * ID */
   Get_SerialNum();
   /* USER CODE BEGIN USBD_FS_SerialStrDescriptor */
-  char serial[9];
-  get_serial_number(serial, sizeof(serial));
-  USBD_GetString((uint8_t *)serial, USBD_StrDesc, length);
-  return USBD_StrDesc;
+
   /* USER CODE END USBD_FS_SerialStrDescriptor */
   return (uint8_t *) USBD_StringSerial;
 }

@@ -18,7 +18,8 @@
 // include
 #include <stdbool.h>
 #include <stdint.h>
-#include "stm32f4xx_hal.h"
+#include "stm32f0xx_hal.h"
+#include "stm32f042x6.h"
 
 // led definitions
 #define ACTIVITY_LED GPIO_PIN_6

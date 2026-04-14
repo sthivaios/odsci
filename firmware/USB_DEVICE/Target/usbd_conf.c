@@ -2,7 +2,7 @@
 /**
   ******************************************************************************
   * @file           : Target/usbd_conf.c
-  * @version        : v1.0_Cube
+  * @version        : v2.0_Cube
   * @brief          : This file implements the board support package for the USB device library
   ******************************************************************************
   * @attention
@@ -47,14 +47,13 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status);
 
 /* USER CODE END PFP */
 
 /* Private functions ---------------------------------------------------------*/
 static USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status);
 /* USER CODE BEGIN 1 */
-
+static void SystemClockConfig_Resume(void);
 /* USER CODE END 1 */
 extern void SystemClock_Config(void);
 
@@ -220,7 +219,12 @@ void HAL_PCD_ResumeCallback(PCD_HandleTypeDef *hpcd)
 #endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
 {
   /* USER CODE BEGIN 3 */
-
+  if (hpcd->Init.low_power_enable)
+  {
+    /* Reset SLEEPDEEP bit of Cortex System Control Register. */
+    SCB->SCR &= (uint32_t)~((uint32_t)(SCB_SCR_SLEEPDEEP_Msk | SCB_SCR_SLEEPONEXIT_Msk));
+    SystemClockConfig_Resume();
+  }
   /* USER CODE END 3 */
   USBD_LL_Resume((USBD_HandleTypeDef*)hpcd->pData);
 }

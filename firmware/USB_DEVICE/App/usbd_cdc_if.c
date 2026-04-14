@@ -2,7 +2,7 @@
 /**
   ******************************************************************************
   * @file           : usbd_cdc_if.c
-  * @version        : v1.0_Cube
+  * @version        : v2.0_Cube
   * @brief          : Usb device for Virtual Com Port.
   ******************************************************************************
   * @attention
@@ -260,7 +260,6 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-  odsci_handle_rx(Buf, *Len);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
   /* USER CODE END 6 */
