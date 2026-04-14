@@ -32,6 +32,7 @@ void set_last_reset_due_to_iwdg(const bool iwdg_status) {
   iwdg_reset = iwdg_status;
 }
 
+
 void get_serial_number(char *out, size_t len) {
   uint32_t uid0 = *(uint32_t *)(UID_BASE);
   uint32_t uid1 = *(uint32_t *)(UID_BASE + 4);

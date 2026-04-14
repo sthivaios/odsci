@@ -294,7 +294,6 @@ uint8_t * USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
   return (uint8_t *) USBD_StringSerial;
 }
 
-
 /**
   * @brief  Return the configuration string descriptor
   * @param  speed : Current device speed

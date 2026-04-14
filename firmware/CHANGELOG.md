@@ -2,6 +2,11 @@
  
 Note: Changelog started at v1.1.0. See commit history for changes prior to this version.
 
+## [v2.0.1] - 2026-04-15
+
+### Fixed
+- IWDG timeout was too short, causing ODSCI to enter a loop after reading the temperature where it would reboot because the conversion took too long
+
 ## [v2.0.0] - 2026-04-14
 
 ### Beraking Changes
