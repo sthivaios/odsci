@@ -46,15 +46,16 @@ flag, to continuously update the reading in your terminal.
 
 The command accepts other arguments too.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		
+
 		// extract flags/args
 		serialPort, _ := cmd.Flags().GetString("port")
-		watch, _ := cmd.Flags().GetBool("watch");
-		noLog, _ := cmd.Flags().GetBool("no-log");
+		watch, _ := cmd.Flags().GetBool("watch")
+		noLog, _ := cmd.Flags().GetBool("no-log")
 		interval, _ := cmd.Flags().GetInt("interval")
 		unit, _ := cmd.Flags().GetString("unit")
+		silenceAdvisories, _ := cmd.Flags().GetBool("silence-advisories")
 
-		if (unit != "c" && unit != "f" && unit != "k") {
+		if unit != "c" && unit != "f" && unit != "k" {
 			print(color.MagentaString("The --unit (-u) flag only accepts: 'c', 'f', 'k',\nbut you entered \"%s\".\r\n\r\nReminder that the default is 'c'.\r\n", unit))
 			return
 		}
@@ -85,87 +86,89 @@ The command accepts other arguments too.`,
 		scanner := bufio.NewScanner(port)
 
 		// clear serial buffer
-		utils.ClearBuffer(port, scanner);
+		utils.ClearBuffer(port, scanner)
 
 		// get board info, turn on CLED and check for iwdg reset
-		boardInfo, _ := utils.BoardCheck(port, scanner);
-		if (boardInfo.LastResetWasIWDG) {
+		boardInfo, _ := utils.BoardCheck(port, scanner)
+		if boardInfo.LastResetWasIWDG && !silenceAdvisories {
 			print(utils.AdvisoryStringIWDG(boardInfo))
 		}
 
 		// main logic
-		if (watch) {
+		if watch {
 			fmt.Print(color.HiBlueString("Reading ODSCI probe on %s,\r\nat a %ds interval, in degrees º%s.\r\n\r\n", serialPort, interval, strings.ToUpper(unit)))
-			var prevTemperature float64;
-			var firstLog bool = true;
-			var crcAdvisoryDisplayed bool = false;
-			for (true) {
+			var prevTemperature float64
+			var firstLog bool = true
+			var crcAdvisoryDisplayed bool = false
+			for true {
 				_, raw_temp, readError := utils.ReadTemperature(port, scanner)
 				var temp_to_print string
-				var currentTemp float64 = 0;
-				if (!firstLog) {
+				var currentTemp float64 = 0
+				if !firstLog {
 					switch unit {
-						case "c":
-							currentTemp = raw_temp;
-							var difference = currentTemp - prevTemperature;
-							temp_to_print = fmt.Sprintf("%+0.2fºC (%+0.2fºC)", raw_temp, difference)
-						case "f":
-							currentTemp = utils.ConvertCelsiusToFahrenheit(raw_temp)
-							var difference = currentTemp - prevTemperature;
-							temp_to_print = fmt.Sprintf("%+0.2fºF (%+0.2fºF)", currentTemp, difference)
-						case "k":
-							currentTemp = utils.ConvertCelsiusToKelvin(raw_temp)
-							var difference = currentTemp - prevTemperature;
-							temp_to_print = fmt.Sprintf("%+0.2fºK (%+0.2fºK)", currentTemp, difference)
+					case "c":
+						currentTemp = raw_temp
+						var difference = currentTemp - prevTemperature
+						temp_to_print = fmt.Sprintf("%+0.2fºC (%+0.2fºC)", raw_temp, difference)
+					case "f":
+						currentTemp = utils.ConvertCelsiusToFahrenheit(raw_temp)
+						var difference = currentTemp - prevTemperature
+						temp_to_print = fmt.Sprintf("%+0.2fºF (%+0.2fºF)", currentTemp, difference)
+					case "k":
+						currentTemp = utils.ConvertCelsiusToKelvin(raw_temp)
+						var difference = currentTemp - prevTemperature
+						temp_to_print = fmt.Sprintf("%+0.2fºK (%+0.2fºK)", currentTemp, difference)
 					}
 				} else {
 					switch unit {
-						case "c":
-							currentTemp = raw_temp;
-							temp_to_print = fmt.Sprintf("%+0.2fºC", raw_temp)
-						case "f":
-							currentTemp = utils.ConvertCelsiusToFahrenheit(raw_temp)
-							temp_to_print = fmt.Sprintf("%+0.2fºF", currentTemp)
-						case "k":
-							currentTemp = utils.ConvertCelsiusToKelvin(raw_temp)
-							temp_to_print = fmt.Sprintf("%+0.2fºK", currentTemp)
+					case "c":
+						currentTemp = raw_temp
+						temp_to_print = fmt.Sprintf("%+0.2fºC", raw_temp)
+					case "f":
+						currentTemp = utils.ConvertCelsiusToFahrenheit(raw_temp)
+						temp_to_print = fmt.Sprintf("%+0.2fºF", currentTemp)
+					case "k":
+						currentTemp = utils.ConvertCelsiusToKelvin(raw_temp)
+						temp_to_print = fmt.Sprintf("%+0.2fºK", currentTemp)
 					}
 				}
-				var errorString string;
+				var errorString string
 				timestamp := time.Now().UTC().Format("15:04:05")
-				if (readError != nil) {
-					if (readError.Error() == "CRC") {
+				if readError != nil {
+					if readError.Error() == "CRC" {
 						errorString = color.HiRedString("A CRC validation error was reported by the device. Perhaps your sensor line is noisy?")
-					} else if (readError.Error() == "PARSE") {
+					} else if readError.Error() == "PARSE" {
 						errorString = color.HiRedString("The temperature value sent by the device, could not be parsed.")
 					}
-					if (!crcAdvisoryDisplayed) {
-						fmt.Print(utils.AdvisoryStringCRC(boardInfo));
-						crcAdvisoryDisplayed = true;
+					if !crcAdvisoryDisplayed && !silenceAdvisories {
+						fmt.Print(utils.AdvisoryStringCRC(boardInfo))
+						crcAdvisoryDisplayed = true
 					}
 				}
-				if (!noLog) {
-					if (readError != nil) {
-						fmt.Printf("[%s]: %s\r\n",timestamp, errorString)
-						continue;
+				if !noLog {
+					if readError != nil {
+						fmt.Printf("[%s]: %s\r\n", timestamp, errorString)
+						continue
 					}
-					fmt.Printf("[%s]: %s\r\n",timestamp, temp_to_print)
+					fmt.Printf("[%s]: %s\r\n", timestamp, temp_to_print)
 				} else {
-					if (readError != nil) {
-						fmt.Printf("\r[%s]: %-86s",timestamp, errorString)
-						continue;
+					if readError != nil {
+						fmt.Printf("\r[%s]: %-86s", timestamp, errorString)
+						continue
 					}
-					fmt.Printf("\r[%s]: %-86s",timestamp, temp_to_print)
+					fmt.Printf("\r[%s]: %-86s", timestamp, temp_to_print)
 				}
 				switch unit {
-					case "c":
-						prevTemperature = raw_temp;
-					case "f":
-						prevTemperature = utils.ConvertCelsiusToFahrenheit(raw_temp)
-					case "k":
-						prevTemperature = utils.ConvertCelsiusToKelvin(raw_temp)
+				case "c":
+					prevTemperature = raw_temp
+				case "f":
+					prevTemperature = utils.ConvertCelsiusToFahrenheit(raw_temp)
+				case "k":
+					prevTemperature = utils.ConvertCelsiusToKelvin(raw_temp)
 				}
-				if (firstLog == true) { firstLog = false }
+				if firstLog == true {
+					firstLog = false
+				}
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
 		} else {
@@ -173,26 +176,28 @@ The command accepts other arguments too.`,
 			_, raw_temp, readError := utils.ReadTemperature(port, scanner)
 			var temp_to_print string
 			switch unit {
-				case "c":
-					temp_to_print = fmt.Sprintf("%+0.2fºC", raw_temp)
-				case "f":
-					temp_to_print = fmt.Sprintf("%+0.2fºF", utils.ConvertCelsiusToFahrenheit(raw_temp))
-				case "k":
-					temp_to_print = fmt.Sprintf("%+0.2fºK", utils.ConvertCelsiusToKelvin(raw_temp))
+			case "c":
+				temp_to_print = fmt.Sprintf("%+0.2fºC", raw_temp)
+			case "f":
+				temp_to_print = fmt.Sprintf("%+0.2fºF", utils.ConvertCelsiusToFahrenheit(raw_temp))
+			case "k":
+				temp_to_print = fmt.Sprintf("%+0.2fºK", utils.ConvertCelsiusToKelvin(raw_temp))
 			}
-			var errorString string;
+			var errorString string
 			timestamp := time.Now().UTC().Format("15:04:05")
-			if (readError != nil) {
-				if (readError.Error() == "CRC") {
+			if readError != nil {
+				if readError.Error() == "CRC" {
 					errorString = color.HiRedString("A CRC validation error was reported by the device. Perhaps your sensor line is noisy?")
-				} else if (readError.Error() == "PARSE") {
+				} else if readError.Error() == "PARSE" {
 					errorString = color.HiRedString("The temperature value sent by the device, could not be parsed.")
 				}
-				fmt.Print(utils.AdvisoryStringCRC(boardInfo));
+				if !silenceAdvisories {
+					fmt.Print(utils.AdvisoryStringCRC(boardInfo))
+				}
 			}
-			if (readError != nil) {
-				fmt.Printf("[%s]: %s\r\n",timestamp, errorString)
-				return;
+			if readError != nil {
+				fmt.Printf("[%s]: %s\r\n", timestamp, errorString)
+				return
 			}
 			fmt.Println(temp_to_print)
 		}
@@ -208,4 +213,5 @@ func init() {
 	readCmd.Flags().IntP("interval", "i", 1, "Interval for watching, if using the --watch flag")
 	readCmd.Flags().Bool("no-log", false, "No log: applies only if --watch is being used and does't log previous values")
 	readCmd.Flags().StringP("unit", "u", "c", "Select a unit: 'c' for Celsius, 'f' for Fahrenheit or 'k' for Kelvin")
+	readCmd.Flags().Bool("silence-advisories", false, "Silences all advisories that might be printed by the CLI")
 }

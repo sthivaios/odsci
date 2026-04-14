@@ -2,6 +2,12 @@
 
 Note: Changelog started at v1.0.0. See commit history for changes prior to this version.
 
+## Unreleased
+
+### Added
+- Added the `--silence-advisories` flag to... well... silence advisories
+- The capture command now informs the user at the end about how many samples were actually valid and written to the file
+
 ## [v1.2.0] - 2026-04-07
 
 ### Added

@@ -38,7 +38,7 @@ import (
 
 // captureCmd represents the capture command
 var captureCmd = &cobra.Command{
-	Use: "capture",
+	Use:   "capture",
 	Short: "Used to capture a number of samples from the probe",
 	Long: `The capture command is used to capture a given number
 of samples from the probe, at a specific interval, and export
@@ -48,10 +48,11 @@ the captured data.`,
 
 		// extract flags/args
 		serialPort, _ := cmd.Flags().GetString("port")
-        samples, _ := cmd.Flags().GetInt("samples")
-        interval, _ := cmd.Flags().GetInt("interval")
-        output, _ := cmd.Flags().GetString("output")
+		samples, _ := cmd.Flags().GetInt("samples")
+		interval, _ := cmd.Flags().GetInt("interval")
+		output, _ := cmd.Flags().GetString("output")
 		iso8601, _ := cmd.Flags().GetBool("iso-8601")
+		silenceAdvisories, _ := cmd.Flags().GetBool("silence-advisories")
 
 		// exit gracefully on ctrl+c
 		var sigChan = make(chan os.Signal, 1)
@@ -80,57 +81,59 @@ the captured data.`,
 		scanner := bufio.NewScanner(port)
 
 		// clear serial buffer
-		utils.ClearBuffer(port, scanner);
+		utils.ClearBuffer(port, scanner)
 
 		// get board info, turn on CLED and check for iwdg reset
-		boardInfo, _ := utils.BoardCheck(port, scanner);
-		if (boardInfo.CledIsUsedForErrors == true) {
+		boardInfo, _ := utils.BoardCheck(port, scanner)
+		if boardInfo.CledIsUsedForErrors == true {
 			port.Write([]byte("SET_CLED_ON\r"))
 		}
-		if (boardInfo.LastResetWasIWDG) {
+		if boardInfo.LastResetWasIWDG && !silenceAdvisories {
 			print(utils.AdvisoryStringIWDG(boardInfo))
 		}
 
 		capturedSamples := make([]utils.Sample, 0, samples)
 
 		// time estimate
-		var totalSeconds float64 = float64(samples-1) * float64(interval) + (float64(samples) * float64(0.85))
-		print(fmt.Sprintf("\r\nCapturing %d samples, at a %s interval\r\nEstimated time until completion: %s\r\nCapture should be completed at around %s\r\n\r\n", samples, utils.TimeString(int64(interval)), utils.TimeString(int64(totalSeconds)), time.Unix((time.Now().Unix() + int64(totalSeconds)), 0).Format("15:04:05")))
+		var totalSeconds float64 = float64(samples-1)*float64(interval) + (float64(samples) * float64(0.85))
+		print(fmt.Sprintf("\r\nCapturing %d samples, at a %s interval\r\nEstimated time until completion: %s\r\nCapture should be completed at around %s\r\n\r\n", samples, utils.TimeString(int64(interval)), utils.TimeString(int64(totalSeconds)), time.Unix((time.Now().Unix()+int64(totalSeconds)), 0).Format("15:04:05")))
 
 		// new progress bar
 		bar := progressbar.New(samples)
 
-		var crcAdvisoryDisplayed bool = false;
-		
+		var crcAdvisoryDisplayed bool = false
+
 		for i := range samples {
 			// read and put values in the struct
 			var sample utils.Sample
 
 			// chose timestamp type depending on the iso8601 flag
-			if (!iso8601) {
+			if !iso8601 {
 				sample.Timestamp = strconv.FormatInt(time.Now().Unix(), 10)
 			} else {
 				sample.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 			}
 
-			_, value, readError := utils.ReadTemperature(port, scanner);
+			_, value, readError := utils.ReadTemperature(port, scanner)
 
-			var errorString string;
+			var errorString string
 			timestamp := time.Now().UTC().Format("15:04:05")
-			if (readError != nil) {
-				if (readError.Error() == "CRC") {
+			if readError != nil {
+				if readError.Error() == "CRC" {
 					errorString = color.HiRedString("CRC error, perhaps your sensor line is noisy?")
-				} else if (readError.Error() == "PARSE") {
+				} else if readError.Error() == "PARSE" {
 					errorString = color.HiRedString("Error parsing the temperature...")
 				}
-				if (!crcAdvisoryDisplayed) {
-					fmt.Print(utils.AdvisoryStringCRC(boardInfo));
-					crcAdvisoryDisplayed = true;
+				if !crcAdvisoryDisplayed && !silenceAdvisories {
+					fmt.Print(utils.AdvisoryStringCRC(boardInfo))
+					crcAdvisoryDisplayed = true
 				}
 			}
 
-			if (readError != nil) {
-				bar.Describe(fmt.Sprintf("[%s]: %s",timestamp, errorString))
+			if readError != nil {
+				bar.Describe(fmt.Sprintf("[%s]: %s", timestamp, errorString))
+			} else {
+				bar.Describe(fmt.Sprintf("[%s]: %s", timestamp, color.HiGreenString("Read OK")))
 			}
 
 			sample.Value = value
@@ -143,8 +146,8 @@ the captured data.`,
 
 			// advance the progress bar
 			bar.Add(1)
-			
-			if (i+1 < samples) {
+
+			if i+1 < samples {
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
 		}
@@ -159,25 +162,37 @@ the captured data.`,
 		writer := csv.NewWriter(f)
 		defer writer.Flush()
 
+		var samples_written int = 0
+
 		// header row
 		writer.Write([]string{"timestamp", "temperature_c", "temperature_f", "temperature_k"})
 
 		for _, sample := range capturedSamples {
-			writer.Write([]string{
-				sample.Timestamp,
-				strconv.FormatFloat(sample.Value, 'f', 2, 64),
-				strconv.FormatFloat(sample.ValueInFahrenheit, 'f', 2, 64),
-				strconv.FormatFloat(sample.ValueInKelvin, 'f', 2, 64),
-			})
+			if sample.Value != (-4096.00) {
+				writer.Write([]string{
+					sample.Timestamp,
+					strconv.FormatFloat(sample.Value, 'f', 2, 64),
+					strconv.FormatFloat(sample.ValueInFahrenheit, 'f', 2, 64),
+					strconv.FormatFloat(sample.ValueInKelvin, 'f', 2, 64),
+				})
+				samples_written += 1
+			}
 		}
 
 		// turn off CLED
-		if (boardInfo.CledIsUsedForErrors == true) {
+		if boardInfo.CledIsUsedForErrors == true {
 			port.Write([]byte("SET_CLED_OFF\r"))
+		}
+
+		if samples == samples_written {
+			color.HiGreen("\r\n\r\nAll %d requested samples were valid, and written to the CSV file.\r\n", samples)
+		} else if samples_written != 0 {
+			color.HiYellow("\r\n\r\nOnly %d/%d samples were valid, and written to the CSV file.\r\nYou requested %d samples, but only %d of them were captured successfully.\r\n", samples_written, samples, samples, samples_written)
+		} else {
+			color.HiRed("\r\n\r\nNo samples were written to the CSV file because all of them were invalid!\r\n")
 		}
 	},
 }
-
 
 func init() {
 	rootCmd.AddCommand(captureCmd)
@@ -188,4 +203,5 @@ func init() {
 	captureCmd.Flags().StringP("output", "o", "", "Output path")
 	captureCmd.MarkFlagRequired("output")
 	captureCmd.Flags().Bool("iso-8601", false, "Uses ISO 8601 timestamps in the CSV instead")
+	captureCmd.Flags().Bool("silence-advisories", false, "Silences all advisories that might be printed by the CLI")
 }
